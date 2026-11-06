@@ -3,7 +3,7 @@
 # entities a person chooses in the inspector (options of kind entity, plugin API 0.15). Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: proxmox
-version: 0.3.0
+version: 0.3.1
 api: "0.18"
 icon: monitor
 maintainer: willobarboza
@@ -36,7 +36,7 @@ tiles:
   - id: node
     name: node_name
     icon: monitor
-    sizes: { min: 1x1, max: 2x2 }
+    sizes: { min: 1x1, max: 9x9 }
     # A title, a dot, a status line and three rows of a name, a value and a bar.
     memory: 1700
     example: node_example
@@ -54,7 +54,7 @@ tiles:
   - id: status_list
     name: list_name
     icon: check-network-outline
-    sizes: { min: 1x1, max: 2x3 }
+    sizes: { min: 1x1, max: 9x9 }
     # A head line and eight rows of a dot, a name and a state.
     memory: 3800
     example: list_example
@@ -70,7 +70,7 @@ tiles:
 
 # A tap on a node tile opens it large: its last 24 hours as a chart, and keys that start, shut down or restart it.
 cards:
-  - { id: control, name: card_name }
+  - { id: control, name: card_name, wide: true }
 
 # Something is down: its name in the top bar, red, on every page that has the item.
 bar_items:

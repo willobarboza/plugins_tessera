@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 - 2026-11-06
+- The tiles take any size the screen's grid allows, up to 9x9.
+- The control card is as wide as the glass, so its chart is larger.
+
 ## 0.3.0 - 2026-11-06
 - A tap on a node tile opens its card: the status large, CPU or memory of the last 24 hours as a chart (tap it to
   switch), and keys to start, shut down or restart, each asking once more before it acts.

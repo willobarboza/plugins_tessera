@@ -942,7 +942,7 @@ bool Proxmox::settings(tessera::SettingsPage &page) {
 
 void Proxmox::setup() {
   add_tile("node", [this]() { return new NodeTile(this); });
-  add_card("control", [this]() { return new ControlCard(this); });
+  add_card("control", [this]() { return new ControlCard(this); }, true);
   add_bar_item("problems", [this]() { return bar(); });
   add_saver("problems", tessera::SaverStep::OWN, [this]() { return new ProblemSaver(this); });
   add_tile("status_list", [this]() { return new ListTile(this); });
