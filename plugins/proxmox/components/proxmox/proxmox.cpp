@@ -11,7 +11,8 @@ using tessera::Tone;
 namespace ui = tessera::ui;
 
 // What a state of a status entity means. A binary sensor or a switch is up when on, unless its device class is
-// "problem" (on means something is wrong); a sensor says it in words (Proxmox: running, stopped; Uptime Kuma: up, down).
+// "problem" (on means something is wrong); a sensor says it in words (Proxmox: running, stopped; Uptime Kuma: up,
+// down; Proxmox Extended Sensors: a ZFS pool ONLINE or DEGRADED, a backup healthy or critical, a cluster quorate).
 enum class Health : uint8_t { NONE, UP, DOWN, PENDING, UNKNOWN };
 
 static bool is_one_of(const char *s, std::initializer_list<const char *> words) {
@@ -26,10 +27,10 @@ static Health health_of(JsonObjectConst entity) {
   const char *kind = entity["attributes"]["device_class"] | "";
   const bool problem = strcmp(kind, "problem") == 0;
   if (is_one_of(state, {"unavailable", "unknown", ""})) return Health::UNKNOWN;
-  if (is_one_of(state, {"on", "running", "online", "up", "true", "connected", "ok"})) return problem ? Health::DOWN : Health::UP;
-  if (is_one_of(state, {"off", "stopped", "offline", "down", "false", "disconnected", "error", "problem"}))
+  if (is_one_of(state, {"on", "running", "online", "up", "true", "connected", "ok", "healthy", "quorate", "active", "verified ok"})) return problem ? Health::DOWN : Health::UP;
+  if (is_one_of(state, {"off", "stopped", "offline", "down", "false", "disconnected", "error", "problem", "faulted", "critical", "no quorum", "verification failed"}))
     return problem ? Health::UP : Health::DOWN;
-  if (is_one_of(state, {"pending", "paused", "maintenance", "starting", "stopping", "suspended"})) return Health::PENDING;
+  if (is_one_of(state, {"pending", "paused", "maintenance", "starting", "stopping", "suspended", "degraded", "warning"})) return Health::PENDING;
   return Health::UNKNOWN;
 }
 
@@ -223,6 +224,20 @@ class NodeTile : public tessera::Tile {
 };
 
 // ---- The status list: a head line that says how many are down, and a row per chosen entity ----
+// A status entity (a VM, a service) shows a dot in its colour and a word; a sensor with a number (CPU, network) shows
+// its value and unit, so one list can hold both.
+
+// A sensor's state as a value: "12%", "3.4 MB/s"; false when the state is no number.
+static bool value_text(const char *state, const char *unit, char *out, size_t size) {
+  char *end = nullptr;
+  const float v = strtof(state, &end);
+  if (!end || end == state) return false;
+  const bool whole = v >= 100 || v <= -100 || strcmp(unit, "%") == 0;
+  if (!unit[0]) snprintf(out, size, whole ? "%.0f" : "%.1f", v);
+  else if (strcmp(unit, "%") == 0) snprintf(out, size, "%.0f%%", v);
+  else snprintf(out, size, whole ? "%.0f %s" : "%.1f %s", v, unit);
+  return true;
+}
 
 class ListTile : public tessera::Tile {
  public:
@@ -232,10 +247,13 @@ class ListTile : public tessera::Tile {
   void create(const tessera::TileContext &c) override {
     width_ = c.width;
     height_ = c.height;
+    copy_to(title_text_, sizeof(title_text_), c.name);
     head_ = ui::label(c.parent, Font::TITLE, theme::INK);
     for (Item &it : items_) {
       it.dot = ui::block(c.parent, theme::MUTED);
       it.name = ui::label(c.parent, Font::BODY, theme::INK);
+      it.value = ui::label(c.parent, Font::BODY, theme::INK);
+      lv_obj_set_style_text_align(it.value, LV_TEXT_ALIGN_RIGHT, 0);
     }
     note_ = ui::text(c.parent, Font::BODY, theme::MUTED);
   }
@@ -244,20 +262,31 @@ class ListTile : public tessera::Tile {
     JsonObjectConst entities = data["entities"];
     count_ = 0;
     down_ = 0;
+    statuses_ = 0;
     for (int i = 0; i < ITEMS; i++) {
       char id[8];
       snprintf(id, sizeof(id), "item_%d", i + 1);
       JsonObjectConst e = entities[id];
-      const Health h = health_of(e);
-      if (h == Health::NONE) continue;
+      if (e.isNull() || e["wait"].is<const char *>()) continue;
       Item &it = items_[count_++];
-      it.health = h;
       copy_to(it.text, sizeof(it.text), e["name"] | id);
-      if (h == Health::DOWN) down_++;
+      const char *state = e["state"] | "";
+      const char *unit = e["attributes"]["unit_of_measurement"] | "";
+      it.health = health_of(e);
+      // A number is a value, never a status: a sensor of CPU or network traffic.
+      it.is_value = value_text(state, unit, it.shown, sizeof(it.shown));
+      if (it.is_value) {
+        it.health = Health::NONE;
+      } else {
+        copy_to(it.shown, sizeof(it.shown), plugin_->text(word_of(it.health)));
+        statuses_++;
+        if (it.health == Health::DOWN) down_++;
+      }
     }
-    // The ones that are down first, so a small tile shows what matters.
+    strip_common_start();
+    // The ones that are down first, so a small tile shows what matters; values keep their order after the statuses.
     for (int i = 1; i < count_; i++)
-      for (int j = i; j > 0 && rank(items_[j].health) < rank(items_[j - 1].health); j--) swap_data(items_[j], items_[j - 1]);
+      for (int j = i; j > 0 && rank(items_[j]) < rank(items_[j - 1]); j--) swap_data(items_[j], items_[j - 1]);
   }
 
   void on_tick(uint32_t) override {
@@ -273,8 +302,7 @@ class ListTile : public tessera::Tile {
     show(note_, false);
     show(head_, true);
     const int th = ui::line_height(Font::TITLE), bh = ui::line_height(Font::BODY);
-    ui::set_text(head_, down_ ? tessera::format(plugin_->text("down"), down_) : std::string(plugin_->text("all_up")));
-    ui::set_tone(head_, down_ ? Tone::ALERT : Tone::GOOD, theme::INK);
+    paint_head();
     lv_obj_set_size(head_, width_, th);
     lv_obj_set_pos(head_, 0, 0);
     const int gap = ui::px(4), d = ui::px(10);
@@ -285,51 +313,108 @@ class ListTile : public tessera::Tile {
         hide(it);
         continue;
       }
-      show(it.dot, true);
+      // A status: a dot, the name and a word. A value: the name and the value, under the dots' column.
+      show(it.dot, !it.is_value);
       show(it.name, true);
-      lv_obj_set_size(it.dot, d, d);
-      lv_obj_set_style_radius(it.dot, d / 2, 0);
-      lv_obj_set_pos(it.dot, 0, y + (bh - d) / 2);
-      ui::set_fill(it.dot, tone_of(it.health), theme::MUTED);
+      show(it.value, true);
+      int x = 0;
+      if (statuses_ > 0) x = d + gap * 2;
+      if (!it.is_value) {
+        lv_obj_set_size(it.dot, d, d);
+        lv_obj_set_style_radius(it.dot, d / 2, 0);
+        lv_obj_set_pos(it.dot, 0, y + (bh - d) / 2);
+      }
+      ui::set_text(it.value, it.shown);
+      int vw = ui::text_width(it.shown, Font::BODY) + gap;
+      if (vw > (width_ - x) / 2) vw = (width_ - x) / 2;
+      lv_obj_set_size(it.value, vw, bh);
+      lv_obj_set_pos(it.value, width_ - vw, y);
       ui::set_text(it.name, it.text);
-      ui::set_color(it.name, it.health == Health::DOWN ? theme::INK : theme::INK_SOFT);
-      lv_obj_set_size(it.name, width_ - d - gap * 2, bh);
-      lv_obj_set_pos(it.name, d + gap * 2, y);
+      lv_obj_set_size(it.name, width_ - x - vw - gap, bh);
+      lv_obj_set_pos(it.name, x, y);
+      paint(it);
       y += bh + gap;
     }
   }
 
   void on_theme() override {
-    ui::set_tone(head_, down_ ? Tone::ALERT : Tone::GOOD, theme::INK);
+    paint_head();
     ui::set_color(note_, theme::MUTED);
-    for (int i = 0; i < count_; i++) {
-      ui::set_fill(items_[i].dot, tone_of(items_[i].health), theme::MUTED);
-      ui::set_color(items_[i].name, items_[i].health == Health::DOWN ? theme::INK : theme::INK_SOFT);
-    }
+    for (int i = 0; i < count_; i++) paint(items_[i]);
   }
 
  private:
   struct Item {
-    lv_obj_t *dot{}, *name{};
+    lv_obj_t *dot{}, *name{}, *value{};
     Health health = Health::NONE;
+    bool is_value = false;
     char text[40] = "";
+    char shown[24] = "";
   };
-  static int rank(Health h) { return h == Health::DOWN ? 0 : h == Health::PENDING ? 1 : h == Health::UNKNOWN ? 2 : 3; }
+
+  void paint_head() {
+    if (statuses_ == 0) {
+      ui::set_text(head_, title_text_[0] ? title_text_ : plugin_->text("name_fallback"));
+      ui::set_color(head_, theme::INK);
+      return;
+    }
+    ui::set_text(head_, down_ ? tessera::format(plugin_->text("down"), down_) : std::string(plugin_->text("all_up")));
+    ui::set_tone(head_, down_ ? Tone::ALERT : Tone::GOOD, theme::INK);
+  }
+
+  static void paint(Item &it) {
+    if (it.is_value) {
+      ui::set_color(it.name, theme::INK_SOFT);
+      ui::set_color(it.value, theme::INK);
+      return;
+    }
+    ui::set_fill(it.dot, tone_of(it.health), theme::MUTED);
+    ui::set_color(it.name, it.health == Health::DOWN ? theme::INK : theme::INK_SOFT);
+    ui::set_tone(it.value, tone_of(it.health), theme::MUTED);
+  }
+
+  // "1. Node: server CPU Usage", "1. Node: server Network RX" become "CPU Usage" and "Network RX": the words every name
+  // starts with say nothing on a list of one device.
+  void strip_common_start() {
+    if (count_ < 2) return;
+    size_t common = strlen(items_[0].text);
+    for (int i = 1; i < count_; i++) {
+      size_t k = 0;
+      while (k < common && items_[i].text[k] && items_[i].text[k] == items_[0].text[k]) k++;
+      common = k;
+    }
+    while (common > 0 && items_[0].text[common - 1] != ' ') common--;  // whole words only
+    if (common == 0) return;
+    for (int i = 0; i < count_; i++)
+      if (strlen(items_[i].text) <= common) return;  // a name would be left empty
+    for (int i = 0; i < count_; i++) memmove(items_[i].text, items_[i].text + common, strlen(items_[i].text) - common + 1);
+  }
+
+  static int rank(const Item &it) {
+    if (it.is_value) return 4;
+    return it.health == Health::DOWN ? 0 : it.health == Health::PENDING ? 1 : it.health == Health::UNKNOWN ? 2 : 3;
+  }
   static void swap_data(Item &a, Item &b) {
     Item t = a;
     a.health = b.health;
+    a.is_value = b.is_value;
     copy_to(a.text, sizeof(a.text), b.text);
+    copy_to(a.shown, sizeof(a.shown), b.shown);
     b.health = t.health;
+    b.is_value = t.is_value;
     copy_to(b.text, sizeof(b.text), t.text);
+    copy_to(b.shown, sizeof(b.shown), t.shown);
   }
   static void hide(Item &it) {
     show(it.dot, false);
     show(it.name, false);
+    show(it.value, false);
   }
 
   const tessera::Plugin *plugin_;
   int width_ = 0, height_ = 0;
-  int count_ = 0, down_ = 0;
+  int count_ = 0, down_ = 0, statuses_ = 0;
+  char title_text_[48] = "";
   lv_obj_t *head_{}, *note_{};
   Item items_[ITEMS];
 };
