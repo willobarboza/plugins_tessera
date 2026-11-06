@@ -3,8 +3,8 @@
 # entities a person chooses in the inspector (options of kind entity, plugin API 0.15). Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: proxmox
-version: 0.2.0
-api: "0.15"
+version: 0.3.0
+api: "0.18"
 icon: monitor
 maintainer: willobarboza
 license: MIT
@@ -13,7 +13,23 @@ topics: [tech, home]
 requires:
   esphome: 2026.6.2
 boards: any
-flash_kb: 6
+flash_kb: 14
+
+permissions:
+  # The control card presses the button entities a person chose for a node tile (start, shut down, restart).
+  home_assistant_actions: [button.press]
+  # The card's chart: a sensor's hourly means of the last day, from Home Assistant's long-term statistics.
+  ha_commands: [recorder/statistics_during_period]
+  # The problem sensor the top bar's item and the popup read (plugin.yaml).
+  read_entities: ["{problem}"]
+
+inputs:
+  - { id: problem, kind: entity, domains: [binary_sensor], scope: screen, label: input_problem, hint: input_problem_hint }
+
+answers:
+  - command: recorder/statistics_during_period
+    fields:
+      means: { path: "[*][*].mean", as: numbers }
 
 tiles:
   # A node or a guest: whether it runs, and its CPU, memory and disk as bars.
@@ -29,6 +45,9 @@ tiles:
       - { id: cpu, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: cpu, hint: percent_hint }
       - { id: memory, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: memory, hint: percent_hint }
       - { id: disk, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: disk, hint: percent_hint }
+      - { id: start, kind: entity, domains: [button], label: key_start, hint: keys_hint }
+      - { id: shutdown, kind: entity, domains: [button], label: key_shutdown }
+      - { id: reboot, kind: entity, domains: [button], label: key_reboot }
 
   # Up to eight guests, services or sensors: a status as a dot and a word, a number as its value and unit, and a line
   # over them that says how many are down.
@@ -48,3 +67,27 @@ tiles:
       - { id: item_6, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class, unit_of_measurement], label: item_6 }
       - { id: item_7, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class, unit_of_measurement], label: item_7 }
       - { id: item_8, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class, unit_of_measurement], label: item_8 }
+
+# A tap on a node tile opens it large: its last 24 hours as a chart, and keys that start, shut down or restart it.
+cards:
+  - { id: control, name: card_name }
+
+# Something is down: its name in the top bar, red, on every page that has the item.
+bar_items:
+  - { id: problems, label: bar_problems, icon: alert-circle, example: bar_example }
+
+# A step of the screensaver that shows only while something is down: what, large, on the black glass.
+savers:
+  - id: problems
+    name: saver_problems
+    icon: alert-circle
+    step: own
+    memory: 1000
+    domains: [binary_sensor]
+    attributes: [problems]
+    when: { state: ["on"] }
+    example: saver_example
+
+# The setting of plugin.yaml: whether a problem shows a popup over the screen.
+settings:
+  - { key: proxmox_popup, label: setting_popup, hint: setting_popup_hint }

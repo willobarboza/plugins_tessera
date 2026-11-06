@@ -19,3 +19,38 @@ A Proxmox node's status, CPU, memory and disk on a tile, and a list of guests or
 - A sensor is up when it says `running`, `online`, `up` or `on`, down for `stopped`, `offline` or `down`, and pending
   for `pending`, `paused` or `maintenance`.
 - Changing an entity in the inspector needs no build.
+
+## The control card
+
+Choose the node's or guest's **Start**, **Shut down** and **Restart** buttons in the node tile's inspector. A tap on
+the tile then opens its card: the status large, the last 24 hours of CPU or memory as a chart (tap the chart to switch;
+it reads Home Assistant's long-term statistics, so the sensor needs a state class), and the keys. A key asks once more:
+tap it, it turns red and says **Tap again**; tap again within five seconds and it presses the button. The screen must
+be allowed to perform Home Assistant actions (the ESPHome device's options in Home Assistant).
+
+## When something goes down
+
+Make one binary sensor in Home Assistant that is on while something is down, with the names of what is down in its
+attribute `problems`. With a label **Proxmox watch** on every status entity to watch:
+
+```yaml
+template:
+  - binary_sensor:
+      - name: Proxmox problem
+        unique_id: proxmox_problem
+        device_class: problem
+        state: >
+          {{ label_entities('Proxmox watch') | select('is_state', ['off', 'unavailable', 'stopped', 'offline', 'down'])
+             | list | count > 0 }}
+        attributes:
+          problems: >
+            {{ label_entities('Proxmox watch') | select('is_state', ['off', 'unavailable', 'stopped', 'offline', 'down'])
+               | map('state_attr', 'friendly_name') | list }}
+```
+
+Choose it as the **Problem sensor** when adding the plugin. Then:
+
+- the **Proxmox problems** item of the top bar shows what is down, in red, and nothing while all is well;
+- a popup shows when something goes down (the **Popup on a problem** setting turns it off);
+- the screensaver's **Proxmox problems** step (Screensaver card, Add from plugins, with the same sensor) shows what is
+  down on the black glass, and is skipped while all is well.

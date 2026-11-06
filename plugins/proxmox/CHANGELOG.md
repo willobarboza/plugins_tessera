@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 - 2026-11-06
+- A tap on a node tile opens its card: the status large, CPU or memory of the last 24 hours as a chart (tap it to
+  switch), and keys to start, shut down or restart, each asking once more before it acts.
+- New in the node tile's inspector: the start, shut down and restart buttons.
+- Something down shows in a top bar item, in a popup (a setting turns it off), and on a step of the screensaver that
+  shows only then. Choose the problem sensor when adding the plugin (see the README).
+
 ## 0.2.0 - 2026-11-06
 - The status list shows the value of a sensor with a number (CPU, network traffic) beside its name, and the
   state of a VM or service as a word.

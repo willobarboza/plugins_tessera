@@ -1,3 +1,34 @@
-# What a screen gets when it takes this plugin: the component, configured. Tessera includes this file from the screen's
-# <name>.plugins.yaml and adds this plugin's components/ folder as an ESPHome external component.
+# What a screen gets when it takes this plugin. Tessera includes this file from the screen's <name>.plugins.yaml with
+# PROBLEM filled in (the input chosen when the plugin was added), and adds the components folder beside it.
+defaults:
+  PROBLEM: binary_sensor.proxmox_problem
+
+# The problem sensor of Home Assistant, read straight by the screen: on while something is down, and the names of what
+# is down in its attribute "problems". The top bar's item and the popup follow it on every page.
+binary_sensor:
+  - platform: homeassistant
+    id: proxmox_problem
+    entity_id: ${PROBLEM}
+    internal: true
+
+text_sensor:
+  - platform: homeassistant
+    id: proxmox_problems
+    entity_id: ${PROBLEM}
+    attribute: problems
+    internal: true
+
+# A setting, on the screen and in Home Assistant: whether a problem shows a popup over the screen.
+switch:
+  - platform: template
+    id: proxmox_popup
+    name: "Proxmox popup"
+    icon: mdi:alert-circle
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+
 proxmox:
+  problem: proxmox_problem
+  problems: proxmox_problems
+  popup: proxmox_popup

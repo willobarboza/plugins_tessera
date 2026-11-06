@@ -3,7 +3,8 @@
 tiles:
   - tile: node
     name: pve
-    options: { status: binary_sensor.pve_status, cpu: sensor.pve_cpu, memory: sensor.pve_memory, disk: sensor.pve_disk }
+    options: { status: binary_sensor.pve_status, cpu: sensor.pve_cpu, memory: sensor.pve_memory, disk: sensor.pve_disk,
+               start: button.pve_start, shutdown: button.pve_shutdown, reboot: button.pve_reboot }
   - tile: node
     name: Busy node
     options: { status: binary_sensor.pve2_status, cpu: sensor.pve2_cpu, memory: sensor.pve2_memory, disk: sensor.pve2_disk }
@@ -40,3 +41,12 @@ states:
   sensor.uptime_kuma_nas: { state: "down", attributes: { friendly_name: NAS } }
   sensor.uptime_kuma_nextcloud: { state: "pending", attributes: { friendly_name: Nextcloud } }
   binary_sensor.ct_104_pihole: { state: "off", attributes: { friendly_name: Pi-hole, device_class: running } }
+  binary_sensor.proxmox_problem: { state: "on", attributes: { friendly_name: Proxmox problem, problems: [NAS, Pi-hole] } }
+
+commands:
+  recorder/statistics_during_period:
+    means: [8, 9, 7, 6, 6, 5, 5, 6, 12, 18, 22, 25, 31, 28, 24, 20, 19, 26, 34, 41, 30, 22, 15, 12]
+
+savers:
+  - saver: problems
+    entity: binary_sensor.proxmox_problem

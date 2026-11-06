@@ -13,11 +13,23 @@
     "all_up": "All online",
     "down": "1 offline | {n} offline",
     "choose": "Choose entities in the inspector",
-    "name_fallback": "Proxmox"
+    "name_fallback": "Proxmox",
+    "start": "Start",
+    "shutdown": "Shut down",
+    "reboot": "Restart",
+    "again": "Tap again",
+    "sent": "Sent to Home Assistant",
+    "not_sent": "Not sent: may the screen perform actions?",
+    "last_day": "{name}, last 24 h",
+    "peak": "Peak",
+    "no_history": "No history",
+    "loading": "Loading…",
+    "trouble": "Something is down",
+    "setting_popup": "Popup on a problem"
   },
   "app": {
     "name": "Proxmox",
-    "summary": "A Proxmox node's status, CPU, memory and disk, and which guests or services are up.",
+    "summary": "A Proxmox node's status, CPU, memory and disk, a card with its last day and keys to control it, and an alert when something goes down.",
     "node_name": "Proxmox node",
     "node_example": "pve: online, CPU 12%, memory 63%",
     "status": "Status",
@@ -36,6 +48,19 @@
     "item_6": "Item 6",
     "item_7": "Item 7",
     "item_8": "Item 8",
-    "item_hint": "A VM, a container or a service: a binary sensor (on is up, or on is a problem for one of device class problem), or a sensor that says up, running or online."
+    "item_hint": "A VM, a container or a service: a binary sensor (on is up, or on is a problem for one of device class problem), or a sensor that says up, running or online.",
+    "key_start": "Start key",
+    "key_shutdown": "Shut down key",
+    "key_reboot": "Restart key",
+    "keys_hint": "Button entities of the node or guest. A tap on the tile opens its card with these keys; each asks once more before it acts.",
+    "card_name": "Proxmox control",
+    "input_problem": "Problem sensor",
+    "input_problem_hint": "A binary sensor that is on while something is down, with the names of what is down in its attribute problems (see the README).",
+    "bar_problems": "Proxmox problems",
+    "bar_example": "NAS offline",
+    "saver_problems": "Proxmox problems",
+    "saver_example": "Only while something is down: what, large",
+    "setting_popup": "Popup on a problem",
+    "setting_popup_hint": "Show a popup over the screen when something goes down."
   }
 }

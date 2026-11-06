@@ -13,11 +13,23 @@
     "all_up": "Tudo online",
     "down": "1 offline | {n} offline",
     "choose": "Escolha as entidades no inspetor",
-    "name_fallback": "Proxmox"
+    "name_fallback": "Proxmox",
+    "start": "Iniciar",
+    "shutdown": "Desligar",
+    "reboot": "Reiniciar",
+    "again": "Toque de novo",
+    "sent": "Enviado ao Home Assistant",
+    "not_sent": "Não enviado: a tela pode executar ações?",
+    "last_day": "{name}, últimas 24 h",
+    "peak": "Pico",
+    "no_history": "Sem histórico",
+    "loading": "Carregando…",
+    "trouble": "Algo está fora do ar",
+    "setting_popup": "Popup quando algo cai"
   },
   "app": {
     "name": "Proxmox",
-    "summary": "Status, CPU, memória e disco de um nó do Proxmox, e quais VMs ou serviços estão no ar.",
+    "summary": "Status, CPU, memória e disco de um nó do Proxmox, um card com o último dia e botões de controle, e alerta quando algo cai.",
     "node_name": "Nó do Proxmox",
     "node_example": "pve: online, CPU 12%, memória 63%",
     "status": "Status",
@@ -36,6 +48,19 @@
     "item_6": "Item 6",
     "item_7": "Item 7",
     "item_8": "Item 8",
-    "item_hint": "Uma VM, um container ou um serviço: um binary sensor (on é no ar, ou on é problema para device class problem), ou um sensor que diz up, running ou online."
+    "item_hint": "Uma VM, um container ou um serviço: um binary sensor (on é no ar, ou on é problema para device class problem), ou um sensor que diz up, running ou online.",
+    "key_start": "Botão iniciar",
+    "key_shutdown": "Botão desligar",
+    "key_reboot": "Botão reiniciar",
+    "keys_hint": "Entidades de botão do nó ou da VM. Tocar no tile abre o card com esses botões; cada um pede confirmação antes de agir.",
+    "card_name": "Controle do Proxmox",
+    "input_problem": "Sensor de problema",
+    "input_problem_hint": "Um binary sensor que fica on quando algo cai, com os nomes do que caiu no atributo problems (veja o README).",
+    "bar_problems": "Problemas do Proxmox",
+    "bar_example": "NAS offline",
+    "saver_problems": "Problemas do Proxmox",
+    "saver_example": "Só quando algo cai: o quê, em letras grandes",
+    "setting_popup": "Popup quando algo cai",
+    "setting_popup_hint": "Mostra um popup sobre a tela quando algo sai do ar."
   }
 }
