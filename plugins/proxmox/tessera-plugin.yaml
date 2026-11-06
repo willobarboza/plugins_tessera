@@ -1,0 +1,49 @@
+# Proxmox: a node's or a guest's status, CPU, memory and disk, and a list of guests or services that are up or down.
+# The data comes from Home Assistant's Proxmox VE integration (or any sensor that says the same): the plugin reads the
+# entities a person chooses in the inspector (options of kind entity, plugin API 0.15). Every field is explained in
+# docs/MANIFEST.md of tessera-plugins.
+id: proxmox
+version: 0.1.0
+api: "0.15"
+icon: monitor
+maintainer: willobarboza
+license: MIT
+stage: beta
+topics: [tech, home]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 6
+
+tiles:
+  # A node or a guest: whether it runs, and its CPU, memory and disk as bars.
+  - id: node
+    name: node_name
+    icon: monitor
+    sizes: { min: 1x1, max: 2x2 }
+    # A title, a dot, a status line and three rows of a name, a value and a bar.
+    memory: 1700
+    example: node_example
+    options:
+      - { id: status, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: status, hint: status_hint }
+      - { id: cpu, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: cpu, hint: percent_hint }
+      - { id: memory, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: memory, hint: percent_hint }
+      - { id: disk, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: disk, hint: percent_hint }
+
+  # Up to eight guests or services, each a dot and its name, and a line over them that says how many are down.
+  - id: status_list
+    name: list_name
+    icon: check-network-outline
+    sizes: { min: 1x1, max: 2x3 }
+    # A head line and eight rows of a dot, a name and a state.
+    memory: 2900
+    example: list_example
+    options:
+      - { id: item_1, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_1, hint: item_hint }
+      - { id: item_2, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_2 }
+      - { id: item_3, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_3 }
+      - { id: item_4, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_4 }
+      - { id: item_5, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_5 }
+      - { id: item_6, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_6 }
+      - { id: item_7, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_7 }
+      - { id: item_8, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class], label: item_8 }

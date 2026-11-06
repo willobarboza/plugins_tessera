@@ -1,0 +1,42 @@
+# What tools/preview.py shows (docs/PREVIEW.md of tessera-plugins). The entity ids are made up; the states are what
+# Home Assistant's Proxmox VE integration and Uptime Kuma give.
+tiles:
+  - tile: node
+    name: pve
+    options: { status: binary_sensor.pve_status, cpu: sensor.pve_cpu, memory: sensor.pve_memory, disk: sensor.pve_disk }
+  - tile: node
+    name: Busy node
+    options: { status: binary_sensor.pve2_status, cpu: sensor.pve2_cpu, memory: sensor.pve2_memory, disk: sensor.pve2_disk }
+    sizes: [2x2]
+  - tile: node
+    name: Nothing chosen
+    sizes: [1x1]
+  - tile: status_list
+    name: Services
+    options:
+      item_1: binary_sensor.vm_101_homeassistant
+      item_2: binary_sensor.vm_102_docker
+      item_3: binary_sensor.ct_103_jellyfin
+      item_4: sensor.uptime_kuma_nas
+      item_5: sensor.uptime_kuma_nextcloud
+      item_6: binary_sensor.ct_104_pihole
+  - tile: status_list
+    name: All up
+    options: { item_1: binary_sensor.vm_101_homeassistant, item_2: binary_sensor.vm_102_docker }
+    sizes: [2x1]
+
+states:
+  binary_sensor.pve_status: { state: "on", attributes: { friendly_name: pve, device_class: running } }
+  sensor.pve_cpu: { state: "12.4", attributes: { friendly_name: pve CPU, unit_of_measurement: "%" } }
+  sensor.pve_memory: { state: "63.1", attributes: { friendly_name: pve Memory, unit_of_measurement: "%" } }
+  sensor.pve_disk: { state: "41.0", attributes: { friendly_name: pve Disk, unit_of_measurement: "%" } }
+  binary_sensor.pve2_status: { state: "on", attributes: { friendly_name: pve2, device_class: running } }
+  sensor.pve2_cpu: { state: "93", attributes: { friendly_name: pve2 CPU, unit_of_measurement: "%" } }
+  sensor.pve2_memory: { state: "81", attributes: { friendly_name: pve2 Memory, unit_of_measurement: "%" } }
+  sensor.pve2_disk: { state: "512", attributes: { friendly_name: pve2 Disk, unit_of_measurement: GB } }
+  binary_sensor.vm_101_homeassistant: { state: "on", attributes: { friendly_name: Home Assistant, device_class: running } }
+  binary_sensor.vm_102_docker: { state: "on", attributes: { friendly_name: Docker, device_class: running } }
+  binary_sensor.ct_103_jellyfin: { state: "on", attributes: { friendly_name: Jellyfin, device_class: running } }
+  sensor.uptime_kuma_nas: { state: "down", attributes: { friendly_name: NAS } }
+  sensor.uptime_kuma_nextcloud: { state: "pending", attributes: { friendly_name: Nextcloud } }
+  binary_sensor.ct_104_pihole: { state: "off", attributes: { friendly_name: Pi-hole, device_class: running } }

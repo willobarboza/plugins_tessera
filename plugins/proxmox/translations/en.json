@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "name": "English"
+  },
+  "screen": {
+    "online": "Online",
+    "offline": "Offline",
+    "pending": "Pending",
+    "unknown": "Unknown",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "disk": "Disk",
+    "all_up": "All online",
+    "down": "1 offline | {n} offline",
+    "choose": "Choose entities in the inspector",
+    "name_fallback": "Proxmox"
+  },
+  "app": {
+    "name": "Proxmox",
+    "summary": "A Proxmox node's status, CPU, memory and disk, and which guests or services are up.",
+    "node_name": "Proxmox node",
+    "node_example": "pve: online, CPU 12%, memory 63%",
+    "status": "Status",
+    "status_hint": "Whether it runs: a binary sensor, or a sensor that says running, online or up.",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "disk": "Disk",
+    "percent_hint": "A sensor in %, drawn as a bar. Another unit shows as a value without a bar.",
+    "list_name": "Status list",
+    "list_example": "6 of 7 online: the NAS is down",
+    "item_1": "Item 1",
+    "item_2": "Item 2",
+    "item_3": "Item 3",
+    "item_4": "Item 4",
+    "item_5": "Item 5",
+    "item_6": "Item 6",
+    "item_7": "Item 7",
+    "item_8": "Item 8",
+    "item_hint": "A VM, a container or a service: a binary sensor (on is up, or on is a problem for one of device class problem), or a sensor that says up, running or online."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "name": "Português"
+  },
+  "screen": {
+    "online": "Online",
+    "offline": "Offline",
+    "pending": "Pendente",
+    "unknown": "Desconhecido",
+    "cpu": "CPU",
+    "memory": "Memória",
+    "disk": "Disco",
+    "all_up": "Tudo online",
+    "down": "1 offline | {n} offline",
+    "choose": "Escolha as entidades no inspetor",
+    "name_fallback": "Proxmox"
+  },
+  "app": {
+    "name": "Proxmox",
+    "summary": "Status, CPU, memória e disco de um nó do Proxmox, e quais VMs ou serviços estão no ar.",
+    "node_name": "Nó do Proxmox",
+    "node_example": "pve: online, CPU 12%, memória 63%",
+    "status": "Status",
+    "status_hint": "Se está rodando: um binary sensor, ou um sensor que diz running, online ou up.",
+    "cpu": "CPU",
+    "memory": "Memória",
+    "disk": "Disco",
+    "percent_hint": "Um sensor em %, desenhado como barra. Outra unidade aparece como valor, sem barra.",
+    "list_name": "Lista de status",
+    "list_example": "6 de 7 online: o NAS caiu",
+    "item_1": "Item 1",
+    "item_2": "Item 2",
+    "item_3": "Item 3",
+    "item_4": "Item 4",
+    "item_5": "Item 5",
+    "item_6": "Item 6",
+    "item_7": "Item 7",
+    "item_8": "Item 8",
+    "item_hint": "Uma VM, um container ou um serviço: um binary sensor (on é no ar, ou on é problema para device class problem), ou um sensor que diz up, running ou online."
+  }
+}
