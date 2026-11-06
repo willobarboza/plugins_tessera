@@ -6,13 +6,15 @@ it; and an alert in the top bar, in a popup and on the screensaver when somethin
 It works with Home Assistant's **Proxmox VE** integration or with **Proxmox Extended Sensors** (HACS). For services,
 **Uptime Kuma** or **Ping** fit the status list too.
 
-## 1. First, in Home Assistant
+## Set up
+
+### 1. First, in Home Assistant
 
 1. Add one of the Proxmox integrations (Settings > Devices & services > Add integration).
 2. Let the screen perform actions: Settings > Devices & services > ESPHome > your screen > **Configure** > tick
    **Allow the device to perform Home Assistant actions**. Without it the card's keys do nothing.
 
-## 2. The tiles
+### 2. The tiles
 
 Add the plugin to a screen in Tessera (the screen builds once). In Layout, from the library's Plugins group:
 
@@ -24,7 +26,7 @@ Add the plugin to a screen in Tessera (the screen builds once). In Layout, from 
 
 Changing an entity in the inspector needs no build.
 
-## 3. The control card
+### 3. The control card
 
 1. In the **Proxmox node** inspector, choose the **Start**, **Shut down** and **Restart** buttons (the integration's
    `button` entities of that node or guest).
@@ -33,7 +35,7 @@ Changing an entity in the inspector needs no build.
    statistics, so it shows only for sensors that keep them ("No history" for the others).
 4. **Keys**: the first tap turns a key red with **Tap again**; a second tap within 5 seconds acts.
 
-## 4. An alert when something goes down
+### 4. An alert when something goes down
 
 The alert comes from one sensor you make once in Home Assistant: it is on while something is down, and names what is
 down in its attribute `problems`.

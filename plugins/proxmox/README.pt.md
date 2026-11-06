@@ -6,13 +6,15 @@ reiniciar; e um alerta na barra superior, em popup e no screensaver quando algo 
 Funciona com a integração **Proxmox VE** do Home Assistant ou com a **Proxmox Extended Sensors** (HACS). Para
 serviços, **Uptime Kuma** ou **Ping** também servem na lista de status.
 
-## 1. Antes de começar: no Home Assistant
+## Configuração
+
+### 1. Antes de começar: no Home Assistant
 
 1. Instale uma das integrações do Proxmox (Configurações > Dispositivos e serviços > Adicionar integração).
 2. Permita que a tela execute ações: Configurações > Dispositivos e serviços > ESPHome > a sua tela > **Configurar** >
    marque **Permitir que o dispositivo execute ações do Home Assistant**. Sem isso os botões do card não funcionam.
 
-## 2. Os tiles
+### 2. Os tiles
 
 Adicione o plugin a uma tela no Tessera (a tela compila uma vez). Em Layout, no grupo Plugins da biblioteca:
 
@@ -24,7 +26,7 @@ Adicione o plugin a uma tela no Tessera (a tela compila uma vez). Em Layout, no 
 
 Trocar uma entidade no inspetor não precisa compilar de novo.
 
-## 3. O card de controle
+### 3. O card de controle
 
 1. No inspetor do **Nó do Proxmox**, escolha os botões **Iniciar**, **Desligar** e **Reiniciar** (as entidades
    `button` da integração para esse nó ou VM).
@@ -33,7 +35,7 @@ Trocar uma entidade no inspetor não precisa compilar de novo.
    longo prazo do Home Assistant, então só aparece para sensores com histórico ("Sem histórico" nos outros).
 4. **Botões**: o primeiro toque deixa o botão vermelho com **Toque de novo**; o segundo, em até 5 segundos, executa.
 
-## 4. Alerta quando algo cai
+### 4. Alerta quando algo cai
 
 O alerta vem de um sensor que você cria uma vez no Home Assistant: ele fica `on` quando algo está fora e lista o que
 caiu no atributo `problems`.
