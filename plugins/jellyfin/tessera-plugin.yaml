@@ -3,7 +3,7 @@
 # that is connected to the server. The screen never talks to the Jellyfin server itself. Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: jellyfin
-version: 0.1.0
+version: 0.1.1
 api: "0.17"
 icon: television-play
 maintainer: willobarboza

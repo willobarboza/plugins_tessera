@@ -936,6 +936,7 @@ class LibraryCard : public tessera::Card, public Listener {
         levels_[depth_] = Level();
         copy_to(levels_[depth_].id, sizeof(levels_[depth_].id), it.id);
         copy_to(levels_[depth_].title, sizeof(levels_[depth_].title), it.title);
+        copy_to(levels_[depth_].kind, sizeof(levels_[depth_].kind), it.kind);
         browse();
       } else if (it.play) {
         play(it.id, it.kind);
@@ -973,7 +974,12 @@ class LibraryCard : public tessera::Card, public Listener {
     JsonDocument request;
     request["ask"] = "media_player/browse_media";
     request["data"]["entity_id"] = entity_;
-    if (levels_[depth_].id[0]) request["data"]["media_content_id"] = levels_[depth_].id;
+    // Home Assistant takes a folder's id only together with its type, both or neither (the root).
+    const Level &level = levels_[depth_];
+    if (level.id[0]) {
+      request["data"]["media_content_id"] = level.id;
+      request["data"]["media_content_type"] = level.kind[0] ? level.kind : "collection";
+    }
     asked_ = tessera::send(plugin_, request.as<JsonObjectConst>());
     if (!asked_) state_ = State::FAILED;
     layout();
