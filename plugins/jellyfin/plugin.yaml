@@ -1,0 +1,3 @@
+# What a screen gets when it takes this plugin: the component. The tiles read their Jellyfin players through the app
+# (the entities chosen in the inspector), so the screen needs no entity of its own here.
+jellyfin:

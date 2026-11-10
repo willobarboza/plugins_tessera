@@ -1,0 +1,79 @@
+# What tools/preview.py shows (docs/PREVIEW.md of tessera-plugins). The entity ids are made up; the attributes are
+# what Home Assistant's Jellyfin integration gives a client's media player.
+tiles:
+  - tile: now_playing
+    name: Living room
+    entity: media_player.living_room_tv
+  - tile: now_playing
+    name: Bedroom
+    entity: media_player.bedroom_phone
+    sizes: [2x1, 2x2]
+  - tile: now_playing
+    name: Nothing chosen
+    sizes: [1x1]
+  - tile: sessions
+    name: Jellyfin
+    options:
+      session_1: media_player.living_room_tv
+      session_2: media_player.bedroom_phone
+      session_3: media_player.kitchen_tablet
+      session_4: media_player.office_browser
+      names: "Living room, Bedroom, Kitchen"
+  - tile: sessions
+    name: Only what plays
+    options:
+      session_1: media_player.living_room_tv
+      session_2: media_player.kitchen_tablet
+      active_only: true
+    sizes: [2x1]
+
+states:
+  media_player.living_room_tv:
+    state: playing
+    attributes:
+      friendly_name: Living Room TV
+      media_title: Woe's Hollow
+      media_series_title: Severance
+      media_season: 2
+      media_episode: 4
+      media_content_type: episode
+      media_duration: 2934
+      media_position: 1210
+      media_position_updated_at: "{now-1m}"
+      supported_features: 152127
+      is_volume_muted: false
+  media_player.bedroom_phone:
+    state: paused
+    attributes:
+      friendly_name: Pixel 8 Jellyfin
+      media_title: Clair de Lune
+      media_artist: Claude Debussy
+      media_album_name: Suite bergamasque
+      media_content_type: music
+      media_duration: 302
+      media_position: 95
+      media_position_updated_at: "{now-5m}"
+      supported_features: 152139
+      is_volume_muted: false
+  media_player.kitchen_tablet:
+    state: idle
+    attributes: { friendly_name: Kitchen Tablet, supported_features: 152127 }
+  media_player.office_browser:
+    state: unavailable
+    attributes: { friendly_name: Firefox }
+
+cards:
+  - { card: control, entity: media_player.living_room_tv }
+  - { card: library, entity: media_player.living_room_tv }
+
+commands:
+  media_player/browse_media:
+    media_player.living_room_tv:
+      title: Jellyfin
+      media_content_id: ""
+      media_content_type: root
+      can_play: false
+      children:
+        - { title: Movies, media_content_id: 2c2e8f6b1a7a4c0b9d3e5f7a1b2c3d4e, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
+        - { title: Shows, media_content_id: 3d3f9a7c2b8b5d1cae4f6a8b2c3d4e5f, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
+        - { title: Music, media_content_id: 4e4a0b8d3c9c6e2dbf5a7b9c3d4e5f6a, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
