@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 - 2026-11-10
+- A small node tile fits every chosen value: it draws them tighter, then without bars, instead of leaving one out.
+- A value under 10% keeps its decimal: 1.4%, not 1%.
+
 ## 0.3.1 - 2026-11-06
 - The tiles take any size the screen's grid allows, up to 9x9.
 - The control card is as wide as the glass, so its chart is larger.

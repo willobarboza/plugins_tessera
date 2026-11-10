@@ -98,7 +98,7 @@ static void parse_node(JsonObjectConst data, NodeData &n) {
     m.percent = m.number && strcmp(unit, "%") == 0;
     m.level = m.number ? (v < 0 ? 0 : v > 100 && m.percent ? 100 : v) : 0;
     if (!m.number) copy_to(m.text, sizeof(m.text), "-");
-    else if (m.percent) snprintf(m.text, sizeof(m.text), "%.0f%%", v);
+    else if (m.percent) snprintf(m.text, sizeof(m.text), v < 10 ? "%.1f%%" : "%.0f%%", v);
     else snprintf(m.text, sizeof(m.text), v < 10 ? "%.1f %s" : "%.0f %s", v, unit);
   }
 }
@@ -211,24 +211,41 @@ class NodeTile : public tessera::Tile {
     ui::set_text(title_, title());
     lv_obj_set_size(title_, width_ - x, th);
     lv_obj_set_pos(title_, x, 0);
+    // Every chosen row should fit: the roomiest of these layouts that does is taken. First with the status line, a
+    // gap and a bar under each value; then tighter; then without bars (the value alone); then without the status line
+    // (the dot beside the title still says it).
+    struct Fit { int gap, bar; bool status; };
+    const Fit fits[] = {{ui::px(6), ui::px(6), true}, {ui::px(3), ui::px(4), true}, {ui::px(2), 0, true},
+                        {ui::px(2), 0, false}};
+    Fit fit = fits[3];
+    for (const Fit &f : fits) {
+      int need = th + (has_status && f.status ? bh : 0);
+      for (int i = 0; i < 3; i++)
+        if (node_.measures[i].there) need += f.gap + bh + (node_.measures[i].percent && f.bar ? f.bar + ui::px(2) : 0);
+      if (need <= height_) {
+        fit = f;
+        break;
+      }
+    }
     int y = th;
-    visible(status_, has_status && y + bh <= height_);
-    if (has_status && y + bh <= height_) {
+    const bool status_line = has_status && fit.status && y + bh <= height_;
+    visible(status_, status_line);
+    if (status_line) {
       ui::set_text(status_, plugin_->text(word_of(node_.health)));
       ui::set_tone(status_, tone_of(node_.health), theme::MUTED);
       lv_obj_set_size(status_, width_, bh);
       lv_obj_set_pos(status_, 0, y);
       y += bh;
     }
-    const int bar = ui::px(6);
     for (int i = 0; i < 3; i++) {
-      const Measure &m = node_.measures[i];
-      if (!m.there || y + gap + rows_[i].height(m, Font::BODY, bar) > height_) {
+      Measure m = node_.measures[i];
+      if (!fit.bar) m.percent = false;  // no room for bars: the value alone
+      if (!m.there || y + fit.gap + rows_[i].height(m, Font::BODY, fit.bar) > height_) {
         rows_[i].hide();
         continue;
       }
-      y += gap;
-      y += rows_[i].place(m, plugin_->text(MEASURE_IDS[i]), Font::BODY, width_, y, bar);
+      y += fit.gap;
+      y += rows_[i].place(m, plugin_->text(MEASURE_IDS[i]), Font::BODY, width_, y, fit.bar);
     }
   }
 
