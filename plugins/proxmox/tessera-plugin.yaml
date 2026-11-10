@@ -3,7 +3,7 @@
 # entities a person chooses in the inspector (options of kind entity, plugin API 0.15). Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: proxmox
-version: 0.4.0
+version: 0.4.1
 api: "0.18"
 icon: monitor
 maintainer: willobarboza

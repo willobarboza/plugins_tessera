@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.1 - 2026-11-10
+- Names follow the chosen entities in order: the third name goes to the third entity chosen, even when an item box in between is empty.
+
 ## 0.4.0 - 2026-11-10
 - New in the status list's inspector: **Names**, your own names for its items, in their order (Arco, Docker, NAS).
 - Without them a name is shorter: "arco-(124) Status" shows as "Arco".

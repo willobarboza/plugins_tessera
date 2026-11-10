@@ -653,7 +653,8 @@ class ListTile : public tessera::Tile {
     width_ = c.width;
     height_ = c.height;
     copy_to(title_text_, sizeof(title_text_), c.name);
-    // Names of the person's own, in the order of the items: "Arco, Docker, NAS". An empty place keeps the entity's.
+    // Names of the person's own, in the order of the chosen items (an item box left empty takes no name): "Arco,
+    // Docker, NAS". An empty place keeps the entity's.
     char given[ITEMS][40] = {};
     const char *names = c.options["names"] | "";
     for (int i = 0, slot = 0; names[i] && slot < ITEMS;) {
@@ -694,7 +695,7 @@ class ListTile : public tessera::Tile {
       Item &it = items_[count_++];
       copy_to(it.text, sizeof(it.text), e["name"] | id);
       clean_name(it.text);
-      it.slot = i;
+      it.slot = count_ - 1;  // the k-th chosen entity takes the k-th name, whichever item boxes hold them
       const char *state = e["state"] | "";
       const char *unit = e["attributes"]["unit_of_measurement"] | "";
       it.health = health_of(e);
@@ -776,7 +777,7 @@ class ListTile : public tessera::Tile {
     lv_obj_t *dot{}, *name{}, *value{};
     Health health = Health::NONE;
     bool is_value = false;
-    int slot = 0;  // which item option it came from, for the name the person gave it
+    int slot = 0;  // which of the chosen entities it is, for the name the person gave it
     char text[40] = "";
     char shown[24] = "";
   };

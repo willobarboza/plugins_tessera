@@ -63,6 +63,6 @@
     "setting_popup": "Popup quando algo cai",
     "setting_popup_hint": "Mostra um popup sobre a tela quando algo sai do ar.",
     "names": "Nomes",
-    "names_hint": "Nomes seus para os itens, na ordem, separados por vírgula: Arco, Docker, NAS. Deixe um lugar vazio (Arco,,NAS) para manter o nome da entidade. Sem eles, o nome perde o Status do fim e o número entre parênteses."
+    "names_hint": "Nomes seus para as entidades escolhidas, na ordem em que foram escolhidas, separados por vírgula: Arco, Docker, NAS. Deixe um lugar vazio (Arco,,NAS) para manter o nome da entidade. Sem eles, o nome perde o Status do fim e o número entre parênteses."
   }
 }
