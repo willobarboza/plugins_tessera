@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 - 2026-11-10
+- New in the status list's inspector: **Names**, your own names for its items, in their order (Arco, Docker, NAS).
+- Without them a name is shorter: "arco-(124) Status" shows as "Arco".
+
 ## 0.3.2 - 2026-11-10
 - A small node tile fits every chosen value: it draws them tighter, then without bars, instead of leaving one out.
 - A value under 10% keeps its decimal: 1.4%, not 1%.

@@ -3,7 +3,7 @@
 # entities a person chooses in the inspector (options of kind entity, plugin API 0.15). Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: proxmox
-version: 0.3.2
+version: 0.4.0
 api: "0.18"
 icon: monitor
 maintainer: willobarboza
@@ -67,6 +67,8 @@ tiles:
       - { id: item_6, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class, unit_of_measurement], label: item_6 }
       - { id: item_7, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class, unit_of_measurement], label: item_7 }
       - { id: item_8, kind: entity, domains: [binary_sensor, sensor, switch], attributes: [device_class, unit_of_measurement], label: item_8 }
+      # Names of the person's own, in the order of the items, for names an integration made long ("arco-(124) Status").
+      - { id: names, kind: text, label: names, hint: names_hint }
 
 # A tap on a node tile opens it large: its last 24 hours as a chart, and keys that start, shut down or restart it.
 cards:

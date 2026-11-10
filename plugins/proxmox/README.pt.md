@@ -21,7 +21,8 @@ Adicione o plugin a uma tela no Tessera (a tela compila uma vez). Em Layout, no 
 - **Nó do Proxmox**: escolha no inspetor o **Status**, e os sensores de **CPU**, **Memória** e **Disco**. Um sensor
   em % vira uma barra que fica amarela em 75% e vermelha em 90%; use os sensores de porcentagem (ex. "Memory Usage",
   "RootFS Usage"). Outro valor (GB) aparece como número, sem barra.
-- **Lista de status**: até oito entidades. Um status (VM, container, serviço) aparece com um ponto verde, amarelo ou
+- **Lista de status**: até oito entidades, e em **Nomes** os nomes que você quiser, na ordem (`Arco, Docker, NAS`;
+  um lugar vazio mantém o nome da entidade). Um status (VM, container, serviço) aparece com um ponto verde, amarelo ou
   vermelho e os que estão fora vêm primeiro; um sensor com número (CPU, rede) aparece com o valor ao lado do nome.
 
 Trocar uma entidade no inspetor não precisa compilar de novo.

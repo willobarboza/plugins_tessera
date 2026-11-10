@@ -61,6 +61,63 @@ static void copy_to(char *to, size_t size, const char *from) {
   snprintf(to, size, "%s", from ? from : "");
 }
 
+static constexpr int NAMES = 6;
+
+// "Docker, NAS" into up to six names; returns how many names there were in all. A list as ESPHome hands an attribute
+// over, "['Docker', 'NAS']", reads the same.
+static bool is_edge(char c) { return c == ' ' || c == '[' || c == ']' || c == '\'' || c == '"'; }
+static int split_names(const char *text, char out[][40], int room) {
+  int count = 0;
+  const char *p = text;
+  while (p && *p) {
+    while (*p && (is_edge(*p) || *p == ',' || *p == ';')) p++;
+    if (!*p) break;
+    const char *end = p;
+    while (*end && *end != ',' && *end != ';') end++;
+    const char *last = end;
+    while (last > p && is_edge(last[-1])) last--;
+    if (last > p) {
+      if (count < room) snprintf(out[count], 40, "%.*s", static_cast<int>(last - p), p);
+      count++;
+    }
+    p = end;
+  }
+  return count;
+}
+
+
+// "arco-(124) Status" becomes "Arco": the words an integration adds to an entity's name say nothing on a list of
+// statuses. A trailing "Status", a VM's number in brackets and loose dashes go; the first letter is made capital.
+static void clean_name(char *name) {
+  char out[40];
+  size_t n = 0;
+  for (const char *p = name; *p && n + 1 < sizeof(out); p++) {
+    if (*p == '(') {  // "(124)"
+      const char *q = p + 1;
+      while (*q >= '0' && *q <= '9') q++;
+      if (*q == ')' && q > p + 1) {
+        p = q;
+        continue;
+      }
+    }
+    out[n++] = *p;
+  }
+  out[n] = 0;
+  // Words at the end that only say what kind of entity it is.
+  for (const char *word : {" Status", " status", " Estado", " estado", " State", " state"}) {
+    const size_t len = strlen(word), have = strlen(out);
+    if (have > len && strcmp(out + have - len, word) == 0) out[have - len] = 0;
+  }
+  // Dashes, colons and spaces left at either end.
+  size_t start = 0, end = strlen(out);
+  while (start < end && (out[start] == ' ' || out[start] == '-' || out[start] == '_' || out[start] == ':')) start++;
+  while (end > start && (out[end - 1] == ' ' || out[end - 1] == '-' || out[end - 1] == '_' || out[end - 1] == ':')) end--;
+  if (end == start) return;  // nothing would be left: keep the name as it was
+  out[end] = 0;
+  if (out[start] >= 'a' && out[start] <= 'z') out[start] = static_cast<char>(out[start] - 'a' + 'A');
+  snprintf(name, 40, "%s", out + start);
+}
+
 // ---- What a node or guest is: its status and three measures, read from the entities chosen for the tile ----
 
 struct Measure {
@@ -596,6 +653,24 @@ class ListTile : public tessera::Tile {
     width_ = c.width;
     height_ = c.height;
     copy_to(title_text_, sizeof(title_text_), c.name);
+    // Names of the person's own, in the order of the items: "Arco, Docker, NAS". An empty place keeps the entity's.
+    char given[ITEMS][40] = {};
+    const char *names = c.options["names"] | "";
+    for (int i = 0, slot = 0; names[i] && slot < ITEMS;) {
+      const char *start = names + i;
+      const char *end = strchr(start, ',');
+      const size_t len = end ? static_cast<size_t>(end - start) : strlen(start);
+      snprintf(given[slot], sizeof(given[slot]), "%.*s", static_cast<int>(len), start);
+      i += static_cast<int>(len) + (end ? 1 : 0);
+      slot++;
+    }
+    for (int i = 0; i < ITEMS; i++) {
+      char *g = given[i];
+      while (*g == ' ') g++;
+      size_t len = strlen(g);
+      while (len && g[len - 1] == ' ') g[--len] = 0;
+      copy_to(given_[i], sizeof(given_[i]), g);
+    }
     head_ = ui::label(c.parent, Font::TITLE, theme::INK);
     for (Item &it : items_) {
       it.dot = ui::block(c.parent, theme::MUTED);
@@ -618,6 +693,8 @@ class ListTile : public tessera::Tile {
       if (e.isNull() || e["wait"].is<const char *>()) continue;
       Item &it = items_[count_++];
       copy_to(it.text, sizeof(it.text), e["name"] | id);
+      clean_name(it.text);
+      it.slot = i;
       const char *state = e["state"] | "";
       const char *unit = e["attributes"]["unit_of_measurement"] | "";
       it.health = health_of(e);
@@ -632,6 +709,9 @@ class ListTile : public tessera::Tile {
       }
     }
     strip_common_start();
+    // A name the person gave wins over the entity's.
+    for (int i = 0; i < count_; i++)
+      if (given_[items_[i].slot][0]) copy_to(items_[i].text, sizeof(items_[i].text), given_[items_[i].slot]);
     // The ones that are down first, so a small tile shows what matters; values keep their order after the statuses.
     for (int i = 1; i < count_; i++)
       for (int j = i; j > 0 && rank(items_[j]) < rank(items_[j - 1]); j--) swap_data(items_[j], items_[j - 1]);
@@ -696,6 +776,7 @@ class ListTile : public tessera::Tile {
     lv_obj_t *dot{}, *name{}, *value{};
     Health health = Health::NONE;
     bool is_value = false;
+    int slot = 0;  // which item option it came from, for the name the person gave it
     char text[40] = "";
     char shown[24] = "";
   };
@@ -746,10 +827,12 @@ class ListTile : public tessera::Tile {
     Item t = a;
     a.health = b.health;
     a.is_value = b.is_value;
+    a.slot = b.slot;
     copy_to(a.text, sizeof(a.text), b.text);
     copy_to(a.shown, sizeof(a.shown), b.shown);
     b.health = t.health;
     b.is_value = t.is_value;
+    b.slot = t.slot;
     copy_to(b.text, sizeof(b.text), t.text);
     copy_to(b.shown, sizeof(b.shown), t.shown);
   }
@@ -763,6 +846,7 @@ class ListTile : public tessera::Tile {
   int width_ = 0, height_ = 0;
   int count_ = 0, down_ = 0, statuses_ = 0;
   char title_text_[48] = "";
+  char given_[ITEMS][40] = {};
   lv_obj_t *head_{}, *note_{};
   Item items_[ITEMS];
 };
@@ -771,30 +855,6 @@ class ListTile : public tessera::Tile {
 // Home Assistant says it with one binary sensor (on while something is down) whose attribute "problems" names what is
 // down, "Docker, NAS": a template binary sensor of the person's own (README). The plugin reads it straight from Home
 // Assistant (plugin.yaml) for the top bar and the popup, and the screensaver gets it as its step's entity.
-
-static constexpr int NAMES = 6;
-
-// "Docker, NAS" into up to six names; returns how many names there were in all. A list as ESPHome hands an attribute
-// over, "['Docker', 'NAS']", reads the same.
-static bool is_edge(char c) { return c == ' ' || c == '[' || c == ']' || c == '\'' || c == '"'; }
-static int split_names(const char *text, char out[][40], int room) {
-  int count = 0;
-  const char *p = text;
-  while (p && *p) {
-    while (*p && (is_edge(*p) || *p == ',' || *p == ';')) p++;
-    if (!*p) break;
-    const char *end = p;
-    while (*end && *end != ',' && *end != ';') end++;
-    const char *last = end;
-    while (last > p && is_edge(last[-1])) last--;
-    if (last > p) {
-      if (count < room) snprintf(out[count], 40, "%.*s", static_cast<int>(last - p), p);
-      count++;
-    }
-    p = end;
-  }
-  return count;
-}
 
 // The popup: a red disc and "2 offline" on the close key's line, the names under it. A tap closes it.
 class ProblemPopup : public tessera::Popup {

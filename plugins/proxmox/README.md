@@ -21,7 +21,8 @@ Add the plugin to a screen in Tessera (the screen builds once). In Layout, from 
 - **Proxmox node**: choose a **Status** and sensors for **CPU**, **Memory** and **Disk** in the inspector. A sensor
   in % shows as a bar that turns amber at 75% and red at 90%: take the percentage sensors ("Memory Usage", "RootFS
   Usage"). Another value (GB) shows as a number without a bar.
-- **Status list**: up to eight entities. A status (a VM, a container, a service) shows a green, amber or red dot, the
+- **Status list**: up to eight entities, and in **Names** your own names for them in their order (`Arco, Docker, NAS`;
+  an empty place keeps the entity's name). A status (a VM, a container, a service) shows a green, amber or red dot, the
   ones that are down first; a sensor with a number (CPU, network) shows its value beside its name.
 
 Changing an entity in the inspector needs no build.

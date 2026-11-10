@@ -61,6 +61,8 @@
     "saver_problems": "Proxmox problems",
     "saver_example": "Only while something is down: what, large",
     "setting_popup": "Popup on a problem",
-    "setting_popup_hint": "Show a popup over the screen when something goes down."
+    "setting_popup_hint": "Show a popup over the screen when something goes down.",
+    "names": "Names",
+    "names_hint": "Your own names for the items, in their order, separated by commas: Arco, Docker, NAS. Leave a place empty (Arco,,NAS) to keep that entity's name. Without them, a name loses a trailing Status and a number in brackets."
   }
 }
