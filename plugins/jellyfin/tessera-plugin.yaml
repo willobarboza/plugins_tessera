@@ -1,0 +1,71 @@
+# Jellyfin: what plays on the Jellyfin clients of the house, keys to control it, and its libraries to browse and play.
+# Everything comes through Home Assistant's Jellyfin integration: it makes a media_player for every client (a "session")
+# that is connected to the server. The screen never talks to the Jellyfin server itself. Every field is explained in
+# docs/MANIFEST.md of tessera-plugins.
+id: jellyfin
+version: 0.1.0
+api: "0.17"
+icon: television-play
+maintainer: willobarboza
+license: MIT
+stage: beta
+topics: [media]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 16
+
+permissions:
+  # The control card: play and pause, seek, stop, the volume and mute, and the library card plays what a finger picks.
+  home_assistant_actions: [media_player.media_play_pause, media_player.media_seek, media_player.media_stop,
+                           media_player.volume_up, media_player.volume_down, media_player.volume_mute,
+                           media_player.play_media]
+  # The library card: the libraries and folders of the server, read through a Jellyfin player of Home Assistant.
+  ha_commands: [media_player/browse_media]
+
+tiles:
+  # One Jellyfin client: what it plays, with its cover, the series and episode or the artist, and how far along. A tap
+  # opens the control card.
+  - id: now_playing
+    name: now_name
+    icon: television-play
+    sizes: { min: 1x1, max: 9x9 }
+    # A cover's place and its backdrop, an icon, the player's name, the title, a second line, a bar and two times.
+    memory: 1600
+    pictures: 1
+    domains: [media_player]
+    attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_album_name,
+                 media_content_type, media_duration, media_position, media_position_updated_at, supported_features,
+                 is_volume_muted]
+    example: now_example
+    options:
+      - { id: jump, kind: number, min: 5, max: 120, step: 5, unit: s, default: 30, label: jump, hint: jump_hint }
+
+  # Up to eight Jellyfin clients: who plays what, the ones that play first. A tap on a row opens its control card.
+  - id: sessions
+    name: sessions_name
+    icon: account-group
+    sizes: { min: 1x1, max: 9x9 }
+    # A head line and eight rows of a dot, a name and what plays.
+    memory: 3600
+    example: sessions_example
+    options:
+      - { id: session_1, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_1, hint: session_hint }
+      - { id: session_2, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_2 }
+      - { id: session_3, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_3 }
+      - { id: session_4, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_4 }
+      - { id: session_5, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_5 }
+      - { id: session_6, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_6 }
+      - { id: session_7, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_7 }
+      - { id: session_8, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_8 }
+      # Names of the person's own, in the order of the sessions: Jellyfin names a client after its device and app.
+      - { id: names, kind: text, label: names, hint: names_hint }
+      - { id: active_only, kind: toggle, default: false, label: active_only, hint: active_only_hint }
+      - { id: jump, kind: number, min: 5, max: 120, step: 5, unit: s, default: 30, label: jump, hint: jump_hint }
+
+cards:
+  # A client large: its cover, what plays, how far along, and keys to play and pause, seek, stop, the volume and mute,
+  # and one that opens the library.
+  - { id: control, name: control_name, wide: true, pictures: 1 }
+  # The server's libraries, folders and items, a page at a time; a tap on an item plays it on the client.
+  - { id: library, name: library_name, wide: true }
