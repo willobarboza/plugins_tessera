@@ -242,7 +242,7 @@ class NowTile : public tessera::Tile {
     lv_obj_set_style_text_align(back_icon_, LV_TEXT_ALIGN_CENTER, 0);
     ui::set_text(back_icon_, ui::icon(ICON_TV));
     if (ui::pictures()) cover_ = ui::picture(c.parent, tessera::Placeholder::NONE);
-    state_icon_ = ui::label(c.parent, Font::ICON_SMALL, theme::MUTED);
+    state_dot_ = ui::block(c.parent, theme::MUTED);
     name_ = ui::label(c.parent, Font::BODY, theme::MUTED);
     title_ = ui::label(c.parent, Font::TITLE, theme::INK);
     sub_ = ui::label(c.parent, Font::BODY, theme::MUTED);
@@ -275,7 +275,7 @@ class NowTile : public tessera::Tile {
   }
 
   void hide_all() {
-    for (lv_obj_t *p : {back_, cover_, state_icon_, name_, title_, sub_}) visible(p, false);
+    for (lv_obj_t *p : {back_, cover_, state_dot_, name_, title_, sub_}) visible(p, false);
     progress_.hide();
   }
 
@@ -345,18 +345,19 @@ class NowTile : public tessera::Tile {
     // Beside the cover the words stand in the middle; on their own, at the top.
     int y = top + (side > 0 && !on_top && need < room ? (room - need) / 2 : 0);
     const bool head = fit.head && media;
-    visible(state_icon_, head);
+    visible(state_dot_, head);
     visible(name_, head);
     if (head) {
-      const int iw = ui::line_height(Font::ICON_SMALL);
-      ui::set_text(state_icon_, ui::icon(player_.play == Play::PLAYING ? ICON_PLAY : ICON_PAUSE));
-      ui::set_tone(state_icon_, tone_of(player_.play), theme::MUTED);
-      lv_obj_set_size(state_icon_, iw, bh);
-      lv_obj_set_pos(state_icon_, x, y);
+      // A dot in the colour of the state (green playing, amber paused) before the player's name.
+      const int d = ui::px(8), dx = d + ui::px(6);
+      lv_obj_set_size(state_dot_, d, d);
+      lv_obj_set_style_radius(state_dot_, d / 2, 0);
+      lv_obj_set_pos(state_dot_, x, y + (bh - d) / 2);
+      ui::set_fill(state_dot_, tone_of(player_.play), theme::MUTED);
       ui::set_text(name_, display_name());
       ui::set_color(name_, theme::MUTED);
-      lv_obj_set_size(name_, w - iw - ui::px(4), bh);
-      lv_obj_set_pos(name_, x + iw + ui::px(4), y);
+      lv_obj_set_size(name_, w - dx, bh);
+      lv_obj_set_pos(name_, x + dx, y);
       y += bh;
     }
     visible(title_, true);
@@ -383,7 +384,7 @@ class NowTile : public tessera::Tile {
   char entity_[96] = "";
   char title_text_[48] = "";
   Player player_;
-  lv_obj_t *back_{}, *back_icon_{}, *cover_{}, *state_icon_{}, *name_{}, *title_{}, *sub_{}, *note_{};
+  lv_obj_t *back_{}, *back_icon_{}, *cover_{}, *state_dot_{}, *name_{}, *title_{}, *sub_{}, *note_{};
   Progress progress_;
 };
 
@@ -593,7 +594,8 @@ class ControlCard : public tessera::Card {
     lv_obj_set_style_text_align(back_icon_, LV_TEXT_ALIGN_CENTER, 0);
     ui::set_text(back_icon_, ui::icon(ICON_TV));
     if (ui::pictures()) cover_ = ui::picture(c.parent, tessera::Placeholder::NONE);
-    name_ = ui::label(c.parent, Font::BODY_LARGE, theme::MUTED);
+    state_dot_ = ui::block(c.parent, theme::MUTED);
+    name_ = ui::label(c.parent, Font::BODY_LARGE, theme::INK_SOFT);
     title_ = ui::label(c.parent, Font::HEADLINE, theme::INK);
     sub_ = ui::label(c.parent, Font::BODY_LARGE, theme::MUTED);
     progress_.make(c.parent, Font::BODY);
@@ -687,16 +689,34 @@ class ControlCard : public tessera::Card {
     int first = 0, second = 0;
     for (int i = BACK; i <= STOP; i++) first += want[i];
     for (int i = VOL_DOWN; i <= LIBRARY; i++) second += want[i];
-    const int kh = ui::mm(12);
+    // Keys as high as a finger needs; a little lower on the small glass of the CYD, so the words keep some room.
+    const int kh = ui::large() ? ui::mm(12) : ui::mm(9);
     const int rows = (first ? 1 : 0) + (second ? 1 : 0);
     const int keys_h = rows ? rows * kh + (rows - 1) * gap : 0;
     const int keys_top = height_ - bh - ui::px(4) - keys_h;
-    // Above the keys: the cover at the left, the words beside it.
+    // Above the keys: the words, and the cover at their left when it plays and there is room for both. Every part is
+    // laid out only where it ends above the keys, the most important first, so nothing lies over another.
     const int room = keys_top - gap;
+    const int bar = ui::px(8);
+    const int prog_h = media && player_.duration > 0 ? gap + Progress::height(Font::BODY, bar, true) : 0;
+    const bool has_sub = media && player_.sub[0];
+    const Font title_font =
+        lh + ui::line_height(Font::HEADLINE) + (has_sub ? lh : 0) + prog_h <= room ? Font::HEADLINE : Font::TITLE;
+    const int th = ui::line_height(title_font);
+    const bool show_title = th <= room;
+    const bool show_head = show_title && lh + th <= room;
+    int need = (show_head ? lh : 0) + (show_title ? th : 0);
+    const bool show_sub = has_sub && need + lh <= room;
+    need += show_sub ? lh : 0;
+    const bool show_progress = prog_h && need + prog_h <= room;
+    need += show_progress ? prog_h : 0;
     int side = 0;
-    if (room >= ui::mm(14)) side = room < width_ * 2 / 5 ? room : width_ * 2 / 5;
+    if (media && room >= ui::mm(14)) {
+      side = room < width_ * 2 / 5 ? room : width_ * 2 / 5;
+      if (width_ - side - gap * 2 < ui::mm(30)) side = 0;  // the words would have no room beside it
+    }
     visible(back_, side > 0);
-    visible(cover_, side > 0 && media);
+    visible(cover_, side > 0);
     if (side > 0) {
       lv_obj_set_size(back_, side, side);
       lv_obj_set_pos(back_, 0, 0);
@@ -712,36 +732,46 @@ class ControlCard : public tessera::Card {
     }
     const int x = side ? side + gap * 2 : 0;
     const int w = width_ - x;
-    // The title in large words when there is room for them, else in a card's title font.
-    const Font title_font = ui::line_height(Font::HEADLINE) + lh * 2 + gap * 2 <= room ? Font::HEADLINE : Font::TITLE;
-    const int th = ui::line_height(title_font);
-    int y = 0;
-    const char *state = player_.play == Play::NONE ? "loading" : word_of(player_.play);
-    ui::set_text(name_, plugin_->text(state));
-    ui::set_tone(name_, tone_of(player_.play), theme::MUTED);
-    lv_obj_set_size(name_, w, lh);
-    lv_obj_set_pos(name_, x, y);
-    y += lh;
-    ui::set_font(title_, title_font);
-    ui::set_text(title_, media ? player_.title : plugin_->text(here ? "nothing_playing" : "offline"));
-    ui::set_color(title_, theme::INK);
-    lv_obj_set_size(title_, w, th);
-    lv_obj_set_pos(title_, x, y);
-    y += th;
-    const bool sub = media && player_.sub[0] && y + lh <= room;
-    visible(sub_, sub);
-    if (sub) {
+    // Beside the cover the words stand in the middle of it; without one, at the top.
+    int y = side > need ? (side - need) / 2 : 0;
+    // The state: a dot in its colour and its word, in the colour of words.
+    visible(state_dot_, show_head && here);
+    visible(name_, show_head);
+    if (show_head) {
+      int nx = x;
+      if (here) {
+        const int d = ui::px(10);
+        lv_obj_set_size(state_dot_, d, d);
+        lv_obj_set_style_radius(state_dot_, d / 2, 0);
+        lv_obj_set_pos(state_dot_, x, y + (lh - d) / 2);
+        ui::set_fill(state_dot_, tone_of(player_.play), theme::MUTED);
+        nx += d + ui::px(8);
+      }
+      ui::set_text(name_, plugin_->text(player_.play == Play::NONE ? "nothing_playing" : word_of(player_.play)));
+      ui::set_color(name_, theme::INK_SOFT);
+      lv_obj_set_size(name_, x + w - nx, lh);
+      lv_obj_set_pos(name_, nx, y);
+      y += lh;
+    }
+    visible(title_, show_title);
+    if (show_title) {
+      ui::set_font(title_, title_font);
+      ui::set_text(title_, media ? player_.title : plugin_->text(here ? "nothing_playing" : "offline"));
+      ui::set_color(title_, theme::INK);
+      lv_obj_set_size(title_, w, th);
+      lv_obj_set_pos(title_, x, y);
+      y += th;
+    }
+    visible(sub_, show_sub);
+    if (show_sub) {
       ui::set_text(sub_, player_.sub);
       ui::set_color(sub_, theme::MUTED);
       lv_obj_set_size(sub_, w, lh);
       lv_obj_set_pos(sub_, x, y);
       y += lh;
     }
-    const int bar = ui::px(8);
-    if (media && player_.duration > 0 && y + gap + Progress::height(Font::BODY, bar, true) <= room)
-      progress_.place(player_, epoch, x, y + gap, w, bar, true, Font::BODY);
-    else
-      progress_.hide();
+    if (show_progress) progress_.place(player_, epoch, x, y + gap, w, bar, true, Font::BODY);
+    else progress_.hide();
     // The keys.
     int ky = keys_top;
     for (int row = 0; row < 2; row++) {
@@ -786,7 +816,7 @@ class ControlCard : public tessera::Card {
   int width_ = 0, height_ = 0, tile_ = -1;
   char entity_[96] = "";
   Player player_;
-  lv_obj_t *back_{}, *back_icon_{}, *cover_{}, *name_{}, *title_{}, *sub_{}, *note_{};
+  lv_obj_t *back_{}, *back_icon_{}, *cover_{}, *state_dot_{}, *name_{}, *title_{}, *sub_{}, *note_{};
   Progress progress_;
   Key keys_[KEYS];
   char note_text_[64] = "";
