@@ -971,7 +971,7 @@ class ControlCard : public tessera::Card {
     }
     // Under the keys: what a tap did, or what to choose when the card has nothing to show.
     const char *note = note_text_[0]                  ? note_text_
-                       : p.st == St::NONE              ? plugin_->text(setup_.status[0] ? "choose_status" : "loading")
+                       : p.st == St::NONE && setup_.camera && !setup_.status[0] ? plugin_->text("choose_status")
                        : !count && !setup_.pause[0] && !setup_.stop[0] && !setup_.light[0] ? plugin_->text("choose_keys")
                                                                                            : "";
     ui::set_text(note_, note);

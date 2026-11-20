@@ -3,7 +3,7 @@
     "name": "English"
   },
   "screen": {
-    "loading": "Loading…",
+    "loading": "Waiting for the printer",
     "too_large": "No data",
     "offline": "Offline",
     "off": "Off",

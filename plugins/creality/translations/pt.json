@@ -3,7 +3,7 @@
     "name": "Português"
   },
   "screen": {
-    "loading": "Carregando…",
+    "loading": "Aguardando a impressora",
     "too_large": "Sem dados",
     "offline": "Offline",
     "off": "Desligada",
