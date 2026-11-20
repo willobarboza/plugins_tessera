@@ -58,4 +58,5 @@ Trocar uma entidade no inspetor não precisa compilar de novo.
 
 ## Testado
 
-Na bancada do Tessera (CYD, Waveshare 4.3" retrato, JC8012P4A1). Ainda não numa tela real com a impressora.
+Na bancada do Tessera (CYD, Guition 4", Waveshare 4.3" retrato, JC8012P4A1), sem avisos. Ainda não numa tela real com
+a impressora.

@@ -56,4 +56,5 @@ Changing an entity in the inspector needs no build.
 
 ## Tested
 
-On Tessera's bench (CYD, Waveshare 4.3" portrait, JC8012P4A1). Not yet on a real screen with a printer.
+On Tessera's bench (CYD, Guition 4", Waveshare 4.3" portrait, JC8012P4A1), with no warnings. Not yet on a real screen
+with a printer.
