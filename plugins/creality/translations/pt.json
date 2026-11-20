@@ -47,7 +47,7 @@
     "status": "Print Status",
     "status_hint": "O sensor Print Status da integração (sensor.<impressora>_print_status): o estado, o arquivo, o progresso e o tempo restante.",
     "live": "Ao vivo",
-    "live_hint": "Mostra a câmera ao vivo numa tela que consegue (as placas ESP32-P4). As outras mostram uma imagem que se atualiza.",
+    "live_hint": "Mostra a câmera ao vivo numa tela que consegue (as placas ESP32-P4). As outras mostram a imagem de quando a página abriu: para uma câmera que se atualiza, use o tile de câmera do próprio Tessera.",
     "nozzle": "Temperatura do bico",
     "nozzle_hint": "Os sensores de temperatura da impressora (Nozzle Temperature, Bed Temperature, Chamber Temperature). Deixe um vazio para não mostrá-lo.",
     "bed": "Temperatura da mesa",

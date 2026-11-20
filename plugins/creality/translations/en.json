@@ -47,7 +47,7 @@
     "status": "Print Status",
     "status_hint": "The integration's Print Status sensor (sensor.<printer>_print_status): the state, the file, the progress and the time left.",
     "live": "Live",
-    "live_hint": "Stream the camera live on a screen that can (the ESP32-P4 boards). Other screens show a picture that refreshes.",
+    "live_hint": "Stream the camera live on a screen that can (the ESP32-P4 boards). Other screens show the picture taken when the page opened: for a camera that refreshes, use Tessera's own camera tile.",
     "nozzle": "Nozzle temperature",
     "nozzle_hint": "The printer's temperature sensors (Nozzle Temperature, Bed Temperature, Chamber Temperature). Leave one empty to leave it out.",
     "bed": "Bed temperature",

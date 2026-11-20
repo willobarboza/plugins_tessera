@@ -32,15 +32,16 @@ Adicione o plugin a uma tela no Tessera (a tela compila uma vez). Em Layout, no 
    a hora em que termina, as temperaturas e a camada.
 2. **Câmera Creality**: escolha a **Printer Camera** da impressora como entidade, e o sensor **Print Status** no
    inspetor para a linha de progresso embaixo da imagem. Ligue **Ao vivo** para ver a câmera ao vivo numa tela que
-   consegue (as placas ESP32-P4); as outras mostram uma imagem que se atualiza. Numa tela sem imagens (a CYD) o tile
-   mostra o estado da impressora.
+   consegue (as placas ESP32-P4). As outras mostram uma imagem, tirada quando a página abriu: o Tessera ainda não atualiza a
+   câmera de um plugin. Para uma câmera que se atualiza nelas, coloque o tile de câmera do próprio Tessera ao lado do
+   tile da impressora. Numa tela sem imagens (a CYD) o tile mostra o estado da impressora.
 
 Trocar uma entidade no inspetor não precisa compilar de novo.
 
 ### 3. O cartão de controle
 
-1. Toque em qualquer um dos tiles. O cartão mostra a impressora grande, com a câmera ao lado quando aberto pelo tile da
-   câmera.
+1. Toque em qualquer um dos tiles. O cartão mostra a impressora grande, com a câmera (uma imagem parada) quando aberto
+   pelo tile da câmera.
 2. **Teclas**: pausar enquanto imprime, retomar enquanto está pausada, parar e a luz. Uma tecla só aparece quando você
    escolheu a entidade dela no inspetor do tile e a impressora está num estado em que ela faz algo.
 3. **Parar pergunta antes**: o primeiro toque deixa a tecla vermelha; toque de novo em até cinco segundos para

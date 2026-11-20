@@ -31,15 +31,16 @@ Add the plugin to a screen in Tessera (the screen builds once). In Layout, from 
    it is done, the temperatures and the layer.
 2. **Creality camera**: choose the printer's **Printer Camera** as its entity, and its **Print Status** sensor in the
    inspector for the line of progress under the picture. Turn on **Live** to stream the camera on a screen that can
-   (the ESP32-P4 boards); other screens show a picture that refreshes. On a screen without pictures (the CYD) the
-   tile shows the printer's state instead.
+   (the ESP32-P4 boards). Other screens show one picture, taken when the page opened: Tessera gives a plugin's camera
+   no refresh yet. For a camera that refreshes there, put Tessera's own camera tile beside the printer tile. On a
+   screen without pictures (the CYD) the tile shows the printer's state instead.
 
 Changing an entity in the inspector needs no build.
 
 ### 3. The control card
 
-1. Tap either tile. The card shows the printer large, with the camera beside it when you opened it from the camera
-   tile.
+1. Tap either tile. The card shows the printer large, with the camera (a still picture) when you opened it from the
+   camera tile.
 2. **Keys**: pause while it prints, resume while it is paused, stop, and the light. A key shows only when you chose its
    entity in the tile's inspector and the printer is in a state where it does something.
 3. **Stop asks first**: the first tap turns the key red; tap it again within five seconds to stop the print.
