@@ -1,7 +1,7 @@
 # Changelog
 
 ## 0.1.3 - 2026-11-19
-- The control card says "Loading…" once, in its title, while the player's data is on its way.
+- The control card says "Waiting for the player" once, in its title, while the player's data is on its way.
 
 ## 0.1.2 - 2026-11-19
 - A Jellyfin app that cannot be controlled remotely shows no keys and no Library any more, instead of keys that did

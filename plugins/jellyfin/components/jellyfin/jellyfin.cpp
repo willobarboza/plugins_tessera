@@ -786,7 +786,7 @@ class ControlCard : public tessera::Card {
       ui::set_font(title_, title_font);
       ui::set_text(title_, media ? player_.title
                                  : plugin_->text(here                            ? "nothing_playing"
-                                                 : player_.play == Play::NONE    ? "loading"
+                                                 : player_.play == Play::NONE    ? "waiting"
                                                  : player_.play == Play::TOO_LARGE ? "too_large"
                                                                                    : "offline"));
       ui::set_color(title_, theme::INK);
