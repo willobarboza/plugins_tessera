@@ -1,0 +1,50 @@
+# Creality: a Creality 3D printer (K1, K1C, K1 Max, K2, Ender 3 V3, Hi...) on the screen: how its print
+# goes and its temperatures, and keys to pause, resume and stop it and to switch its light.
+# Everything comes through the Creality WebSocket integration of Home Assistant (ha_creality_ws, from HACS): it talks to
+# the printer on the home network and makes its sensors, buttons and light. Its camera is Tessera's own camera tile.
+# The screen never talks to the printer itself. Every field is explained in docs/MANIFEST.md of tessera-plugins.
+id: creality
+version: 0.1.0
+api: "0.15"
+icon: printer-3d
+maintainer: willobarboza
+license: MIT
+stage: beta
+topics: [tech, home]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 20
+
+permissions:
+  # The control card: the integration's Pause, Resume and Stop buttons, and the printer's light (a light, or a switch
+  # of a smart plug's light).
+  home_assistant_actions: [button.press, light.toggle, switch.toggle]
+
+tiles:
+  # The printer: its state, the file it prints, how far along and how long it still takes, the temperatures and the
+  # layer. A tap opens the control card.
+  - id: printer
+    name: printer_name
+    icon: printer-3d
+    sizes: { min: 1x1, max: 9x9 }
+    # Nine labels and three blocks, and the printer and the card's keys it keeps.
+    memory: 2100
+    domains: [sensor]
+    attributes: [file, progress, job_time_s, left_time_s, error_code]
+    example: printer_example
+    options:
+      - { id: nozzle, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: nozzle, hint: nozzle_hint }
+      - { id: bed, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: bed }
+      - { id: chamber, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: chamber }
+      - { id: layer, kind: entity, domains: [sensor], label: layer, hint: layer_hint }
+      - { id: total_layers, kind: entity, domains: [sensor], label: total_layers }
+      - { id: light, kind: entity, domains: [light, switch], label: light, hint: light_hint }
+      - { id: pause, kind: entity, domains: [button], label: pause, hint: buttons_hint }
+      - { id: resume, kind: entity, domains: [button], label: resume }
+      - { id: stop, kind: entity, domains: [button], label: stop }
+
+cards:
+  # The printer large: its state, the file, the progress, the temperatures, the layer and when it is done, and keys to
+  # pause or resume, to stop (a second tap confirms) and to switch the light.
+  - { id: control, name: control_name, wide: true }
