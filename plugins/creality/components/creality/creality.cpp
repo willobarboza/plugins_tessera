@@ -863,7 +863,9 @@ class ControlCard : public tessera::Card {
       if (tw > width_) tw = width_;
       th = tw * 3 / 4;
       if (th < ui::mm(12)) tw = th = 0;
-      if (tw * th > sw * (sw * 3 / 4)) {
+      // A landscape card keeps the words beside the camera; a square or tall one puts them under it.
+      const bool landscape = sw > 0 && width_ * 3 > room * 4;
+      if (!landscape && tw * th > sw * (sw * 3 / 4)) {
         on_top = true;
         pw = tw;
         ph = th;
