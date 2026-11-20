@@ -1,5 +1,9 @@
 # Jellyfin
 
+> **Control depends on the device.** The screen always shows what plays, but play, pause, seek, volume and the library
+> work only when the Jellyfin app on that device takes remote commands. Many don't, such as the Chromecast, and some TV
+> and phone apps. See "Not every Jellyfin app takes commands" below for a quick check.
+
 What plays on your Jellyfin clients, with its cover, the series and episode or the artist, and how far along; a card
 with keys to play and pause, seek, stop, change the volume and mute; and your libraries to browse and play from the
 screen.
@@ -39,6 +43,8 @@ Changing an entity in the inspector needs no build.
    volume down and up, and mute. A key shows only when the Jellyfin app says it can do it: not every app reports a
    volume, for example.
 3. **Library** opens the library card for that player.
+4. **If a key does nothing**, the device's Jellyfin app is not taking remote commands: this depends on the device and
+   its app, not on the screen. The same key in Home Assistant's own media card does nothing either.
 
 ### 4. The library
 

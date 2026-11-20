@@ -1,5 +1,10 @@
 # Jellyfin
 
+> **O controle depende do aparelho.** A tela sempre mostra o que toca, mas tocar, pausar, avançar, o volume e a
+> biblioteca só funcionam quando o app do Jellyfin naquele aparelho aceita comandos remotos. Muitos não aceitam, como
+> o Chromecast e alguns apps de TV e de celular. Veja "Nem todo app do Jellyfin aceita comandos" abaixo para um teste
+> rápido.
+
 O que toca nos seus clientes Jellyfin, com a capa, a série e o episódio ou o artista, e quanto já passou; um card com
 botões para tocar e pausar, avançar e voltar, parar, mudar o volume e silenciar; e suas bibliotecas para navegar e
 tocar a partir da tela.
@@ -41,6 +46,8 @@ Trocar uma entidade no inspetor não precisa de compilação.
    volume para baixo e para cima, e silenciar. Um botão só aparece quando o app do Jellyfin diz que consegue fazer
    aquilo: nem todo app informa um volume, por exemplo.
 3. **Biblioteca** abre o card da biblioteca para aquele player.
+4. **Se um botão não faz nada**, o app do Jellyfin do aparelho não está aceitando comandos remotos: isso depende do
+   aparelho e do app, não da tela. O mesmo botão no card de mídia do próprio Home Assistant também não funciona.
 
 ### 4. A biblioteca
 
