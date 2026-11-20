@@ -441,7 +441,7 @@ struct Face {
       visible(big, true);
       ui::set_font(big, f);
       ui::set_text(big, t);
-      // Ink, not the paused tone: amber this large is too faint on a light ground. The dot and word under it say paused.
+      // Ink, not the paused tone: amber this large is faint on a light ground. The dot and word under it say paused.
       ui::set_tone(big, Tone::NORMAL, theme::INK);
       const bool under = fh + bh <= h;
       const int top = y + (h - fh - (under ? bh : 0)) / 2;
