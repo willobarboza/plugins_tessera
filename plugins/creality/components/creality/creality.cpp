@@ -135,14 +135,23 @@ struct Printer {
 };
 
 // The file without its folder and without ".gcode": "/usr/data/printer_data/gcodes/Benchy.gcode" is "Benchy". The app
-// cuts a text attribute at 48 bytes, folder and all: a path that long without ".gcode" was cut, and ends in "...".
+// cuts a text attribute at 48 bytes, folder and all, so a long name may end in a piece of ".gcode": that goes too.
 static void file_of(const char *path, char *out, size_t size) {
   const char *slash = strrchr(path, '/');
   const char *name = slash ? slash + 1 : path;
   copy_to(out, size, name);
   const size_t n = strlen(out);
-  if (n > 6 && strcasecmp(out + n - 6, ".gcode") == 0) out[n - 6] = 0;
-  else if (strlen(path) >= 48 && n > 0 && n + 4 <= size) strcat(out, "\u2026");
+  if (n > 6 && strcasecmp(out + n - 6, ".gcode") == 0) {
+    out[n - 6] = 0;
+    return;
+  }
+  if (strlen(path) < 48) return;
+  for (size_t k = 5; k >= 1; k--) {
+    if (n > k && strncasecmp(out + n - k, ".gcode", k) == 0) {
+      out[n - k] = 0;
+      return;
+    }
+  }
 }
 
 // The status sensor's data: {"state", "name", "attributes"}. Nothing there (no entity chosen, or the app waits) leaves
@@ -210,7 +219,7 @@ static void parse_extras(JsonObjectConst entities, Printer &p) {
 // 3840 seconds as "1h 04m", 720 as "12 min".
 static std::string duration_text(const tessera::Plugin *plugin, long s) {
   const long m = (s + 59) / 60;
-  char n[8];
+  char n[24];
   if (m >= 60) {
     snprintf(n, sizeof(n), "%ld", m / 60);
     std::string t = tessera::fill(plugin->text("duration_hm"), "h", n);
