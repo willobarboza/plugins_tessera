@@ -8,6 +8,7 @@
     "idle": "Idle",
     "off": "Off",
     "offline": "Offline",
+    "too_large": "No data",
     "loading": "Loading…",
     "nothing_playing": "Nothing playing",
     "choose_player": "Choose a Jellyfin player in the inspector",

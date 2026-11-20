@@ -8,6 +8,7 @@
     "idle": "Parado",
     "off": "Desligado",
     "offline": "Offline",
+    "too_large": "Sem dados",
     "loading": "Carregando…",
     "nothing_playing": "Nada tocando",
     "choose_player": "Escolha um player do Jellyfin no inspetor",
@@ -30,11 +31,11 @@
   },
   "app": {
     "name": "Jellyfin",
-    "summary": "O que toca nos seus clientes Jellyfin, teclas para controlar e suas bibliotecas para navegar e tocar.",
+    "summary": "O que toca nos seus clientes Jellyfin, botões para controlar e suas bibliotecas para navegar e tocar.",
     "now_name": "Jellyfin tocando agora",
     "now_example": "Ruptura · T2 E3, 12:34 de 48:10",
-    "jump": "Salto do avanço",
-    "jump_hint": "Quanto as teclas de voltar e avançar do card de controle pulam.",
+    "jump": "Pulo ao voltar e avançar",
+    "jump_hint": "Quanto os botões de voltar e avançar do card de controle pulam.",
     "sessions_name": "Sessões do Jellyfin",
     "sessions_example": "2 tocando: Sala, Quarto",
     "session_1": "Player 1",
@@ -49,7 +50,7 @@
     "names": "Nomes",
     "names_hint": "Seus próprios nomes para os players, na ordem, separados por vírgulas: Sala, Quarto. Deixe um lugar vazio (Sala,,Cozinha) para manter o nome do player.",
     "active_only": "Só o que toca",
-    "active_only_hint": "Mostra só os players que tocam ou estão pausados.",
+    "active_only_hint": "Mostra só os players que estão tocando ou pausados.",
     "control_name": "Controle do Jellyfin",
     "library_name": "Biblioteca do Jellyfin"
   }

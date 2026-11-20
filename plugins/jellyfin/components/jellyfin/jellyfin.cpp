@@ -36,11 +36,28 @@ static void visible(lv_obj_t *part, bool on) {
   else lv_obj_add_flag(part, LV_OBJ_FLAG_HIDDEN);
 }
 
-static void copy_to(char *to, size_t size, const char *from) { snprintf(to, size, "%s", from ? from : ""); }
+// A text into a buffer of its own, cut on a whole character: a cut inside a UTF-8 letter would draw a box.
+static void copy_to(char *to, size_t size, const char *from) {
+  if (!size) return;
+  if (!from) from = "";
+  size_t n = strlen(from);
+  if (n >= size) {
+    n = size - 1;
+    while (n && (static_cast<unsigned char>(from[n]) & 0xC0) == 0x80) n--;
+  }
+  memmove(to, from, n);
+  to[n] = 0;
+}
+
+// A corner only when it changes: LVGL draws a part again for every style that is set, also to the same value.
+static void round_to(lv_obj_t *part, int radius) {
+  if (lv_obj_get_style_radius(part, LV_PART_MAIN) != radius) lv_obj_set_style_radius(part, radius, 0);
+}
 
 // ---- What a Jellyfin player says: its state, what it plays, how far along, and what it can do ----
 
-enum class Play : uint8_t { NONE, GONE, OFF, IDLE, PAUSED, PLAYING };
+// TOO_LARGE: the app had no room for this player in the tile's message (a sessions tile of many long titles).
+enum class Play : uint8_t { NONE, TOO_LARGE, GONE, OFF, IDLE, PAUSED, PLAYING };
 
 static Play play_of(const char *state) {
   if (strcmp(state, "playing") == 0 || strcmp(state, "buffering") == 0) return Play::PLAYING;
@@ -56,6 +73,7 @@ static const char *word_of(Play p) {
     case Play::PAUSED: return "paused";
     case Play::IDLE: return "idle";
     case Play::OFF: return "off";
+    case Play::TOO_LARGE: return "too_large";
     default: return "offline";
   }
 }
@@ -77,16 +95,17 @@ static void number_text(JsonVariantConst v, char *out, size_t size) {
 
 struct Player {
   Play play = Play::NONE;
-  char name[48] = "";
+  char name[52] = "";
   char title[52] = "";
-  char sub[96] = "";  // "Series · S1 E2", or "Artist · Album"
+  char sub[104] = "";  // "Series · S1 E2", or "Artist · Album"
   float duration = 0, position = 0;
   uint32_t position_at = 0;
   uint32_t features = 0;
+  bool features_known = false;  // false: Home Assistant did not say, so every key is offered
   bool muted = false;
 
   bool has_media() const { return title[0] && (play == Play::PLAYING || play == Play::PAUSED); }
-  bool can(uint32_t feature) const { return features == 0 || (features & feature) != 0; }
+  bool can(uint32_t feature) const { return !features_known || (features & feature) != 0; }
   // Where it is now: Home Assistant says where it was at a moment, and a player that plays moves on from there.
   float position_now(uint32_t epoch) const {
     float p = position;
@@ -125,7 +144,10 @@ static void parse_player(JsonObjectConst e, const tessera::Plugin *plugin, Playe
   p.duration = a["media_duration"] | 0.0f;
   p.position = a["media_position"] | 0.0f;
   // A moment: the app sends it as seconds since 1970 (an attribute whose name ends in _at).
-  p.position_at = static_cast<uint32_t>(a["media_position_updated_at"].as<double>());
+  const double at = a["media_position_updated_at"] | 0.0;
+  p.position_at = at > 0 && at < 4294967295.0 ? static_cast<uint32_t>(at) : 0;
+  // A client without remote control says 0: then no key, which is not the same as not saying.
+  p.features_known = a["supported_features"].is<uint32_t>();
   p.features = a["supported_features"] | 0u;
   p.muted = a["is_volume_muted"] | false;
 }
@@ -160,13 +182,13 @@ struct Progress {
     visible(track, true);
     lv_obj_set_size(track, w, bar);
     lv_obj_set_pos(track, x, y);
-    lv_obj_set_style_radius(track, bar / 2, 0);
-    lv_obj_set_style_bg_color(track, ui::color(theme::TRACK), 0);
+    round_to(track, bar / 2);
+    ui::set_fill(track, Tone::NORMAL, theme::TRACK);
     const int filled = p.duration > 0 ? static_cast<int>(w * now / p.duration) : 0;
     visible(fill, filled > 0);
     lv_obj_set_size(fill, filled < bar ? bar : filled, bar);
     lv_obj_set_pos(fill, 0, 0);
-    lv_obj_set_style_radius(fill, bar / 2, 0);
+    round_to(fill, bar / 2);
     ui::set_fill(fill, p.play == Play::PLAYING ? Tone::ACCENT : Tone::BUSY, theme::ACCENT);
     visible(left, times);
     visible(right, times);
@@ -283,7 +305,8 @@ class NowTile : public tessera::Tile {
     if (player_.play == Play::NONE) {
       hide_all();
       visible(note_, true);
-      ui::set_text(note_, plugin_->text("choose_player"));
+      // No entity yet, or its first state still on its way.
+      ui::set_text(note_, plugin_->text(entity_[0] ? "loading" : "choose_player"));
       ui::set_color(note_, theme::MUTED);
       lv_obj_set_size(note_, width_, height_);
       lv_obj_set_pos(note_, 0, 0);
@@ -312,7 +335,7 @@ class NowTile : public tessera::Tile {
     if (side > 0) {
       lv_obj_set_size(back_, side, side);
       lv_obj_set_pos(back_, 0, 0);
-      lv_obj_set_style_bg_color(back_, ui::color(theme::TRACK), 0);
+      ui::set_fill(back_, Tone::NORMAL, theme::TRACK);
       const int ih = ui::line_height(Font::ICON);
       lv_obj_set_size(back_icon_, side, ih);
       lv_obj_set_pos(back_icon_, 0, (side - ih) / 2);
@@ -351,7 +374,7 @@ class NowTile : public tessera::Tile {
       // A dot in the colour of the state (green playing, amber paused) before the player's name.
       const int d = ui::px(8), dx = d + ui::px(6);
       lv_obj_set_size(state_dot_, d, d);
-      lv_obj_set_style_radius(state_dot_, d / 2, 0);
+      round_to(state_dot_, d / 2);
       lv_obj_set_pos(state_dot_, x, y + (bh - d) / 2);
       ui::set_fill(state_dot_, tone_of(player_.play), theme::MUTED);
       ui::set_text(name_, display_name());
@@ -382,7 +405,7 @@ class NowTile : public tessera::Tile {
   Jellyfin *plugin_;
   int width_ = 0, height_ = 0, tile_ = -1, jump_ = 30;
   char entity_[96] = "";
-  char title_text_[48] = "";
+  char title_text_[84] = "";
   Player player_;
   lv_obj_t *back_{}, *back_icon_{}, *cover_{}, *state_dot_{}, *name_{}, *title_{}, *sub_{}, *note_{};
   Progress progress_;
@@ -413,7 +436,7 @@ class SessionsTile : public tessera::Tile {
     for (const char *p = names; slot < ITEMS;) {
       const char *end = strchr(p, ',');
       const size_t len = end ? static_cast<size_t>(end - p) : strlen(p);
-      char one[40];
+      char one[52];
       snprintf(one, sizeof(one), "%.*s", static_cast<int>(len < sizeof(one) ? len : sizeof(one) - 1), p);
       char *g = one;
       while (*g == ' ') g++;
@@ -441,13 +464,17 @@ class SessionsTile : public tessera::Tile {
       char id[12];
       snprintf(id, sizeof(id), "session_%d", i + 1);
       Entry &e = entries_[count_];
-      parse_player(entities[id], plugin_, e.player);
+      JsonObjectConst one = entities[id];
+      parse_player(one, plugin_, e.player);
+      // A chosen player the message had no room for keeps its row, so it never seems gone while it plays.
+      if (e.player.play == Play::NONE && entities_[i][0] && strcmp(one["wait"] | "", "too_large") == 0)
+        e.player.play = Play::TOO_LARGE;
       if (e.player.play == Play::NONE) continue;
       const bool active = e.player.play == Play::PLAYING || e.player.play == Play::PAUSED;
       if (active_only_ && !active) continue;
       if (active) active_++;
       e.slot = i;
-      copy_to(e.label, sizeof(e.label), given_[i][0] ? given_[i] : e.player.name);
+      copy_to(e.label, sizeof(e.label), given_[i][0] ? given_[i] : e.player.name[0] ? e.player.name : entities_[i]);
       count_++;
     }
     // The ones that play first, then paused, idle and gone; the order of the inspector within each.
@@ -481,7 +508,7 @@ class SessionsTile : public tessera::Tile {
   struct Entry {
     Player player;
     int slot = 0;
-    char label[48] = "";
+    char label[52] = "";
   };
   struct Row {
     lv_obj_t *dot{}, *name{}, *what{};
@@ -535,7 +562,7 @@ class SessionsTile : public tessera::Tile {
       visible(r.what, true);
       const int ty = y + (row_h - bh) / 2;
       lv_obj_set_size(r.dot, d, d);
-      lv_obj_set_style_radius(r.dot, d / 2, 0);
+      round_to(r.dot, d / 2);
       lv_obj_set_pos(r.dot, 0, ty + (bh - d) / 2);
       ui::set_fill(r.dot, tone_of(e.player.play), e.player.play == Play::GONE ? theme::TRACK : theme::MUTED);
       const int x = d + gap * 2;
@@ -569,7 +596,7 @@ class SessionsTile : public tessera::Tile {
   bool active_only_ = false;
   int configured_ = 0, count_ = 0, active_ = 0, shown_ = 0;
   char entities_[ITEMS][96] = {};
-  char given_[ITEMS][40] = {};
+  char given_[ITEMS][52] = {};
   Entry entries_[ITEMS];
   lv_obj_t *head_{}, *note_{};
   Row rows_[ITEMS];
@@ -720,7 +747,7 @@ class ControlCard : public tessera::Card {
     if (side > 0) {
       lv_obj_set_size(back_, side, side);
       lv_obj_set_pos(back_, 0, 0);
-      lv_obj_set_style_bg_color(back_, ui::color(theme::TRACK), 0);
+      ui::set_fill(back_, Tone::NORMAL, theme::TRACK);
       const int ih = ui::line_height(Font::ICON);
       lv_obj_set_size(back_icon_, side, ih);
       lv_obj_set_pos(back_icon_, 0, (side - ih) / 2);
@@ -742,7 +769,7 @@ class ControlCard : public tessera::Card {
       if (here) {
         const int d = ui::px(10);
         lv_obj_set_size(state_dot_, d, d);
-        lv_obj_set_style_radius(state_dot_, d / 2, 0);
+        round_to(state_dot_, d / 2);
         lv_obj_set_pos(state_dot_, x, y + (lh - d) / 2);
         ui::set_fill(state_dot_, tone_of(player_.play), theme::MUTED);
         nx += d + ui::px(8);
@@ -885,7 +912,7 @@ class LibraryCard : public tessera::Card, public Listener {
     }
     JsonObjectConst result = m["result"];
     Level &level = levels_[depth_];
-    if (depth_ > 0) copy_to(level.title, sizeof(level.title), result["title"] | level.title);
+    if (depth_ > 0 && result["title"].is<const char *>()) copy_to(level.title, sizeof(level.title), result["title"]);
     level.can_play = result["can_play"] | false;
     copy_to(level.kind, sizeof(level.kind), result["media_content_type"] | "");
     count_ = 0;
@@ -948,14 +975,14 @@ class LibraryCard : public tessera::Card, public Listener {
  private:
   enum class State : uint8_t { LOADING, READY, EMPTY, FAILED };
   struct Level {
-    char id[48] = "";  // "" for the server's root: its libraries
+    char id[52] = "";  // "" for the server's root: its libraries
     char title[52] = "";
     char kind[24] = "";
     bool can_play = false;
     int page = 0;
   };
   struct Item {
-    char id[48] = "";
+    char id[52] = "";
     char title[52] = "";
     char kind[24] = "";  // media_content_type, for play_media
     char cls[16] = "";   // media_class, for its icon

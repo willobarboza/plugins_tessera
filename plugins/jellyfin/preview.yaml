@@ -36,11 +36,11 @@ states:
       media_series_title: Severance
       media_season: 2
       media_episode: 4
-      media_content_type: episode
+      media_content_type: tvshow
       media_duration: 2934
       media_position: 1210
       media_position_updated_at: "{now-1m}"
-      supported_features: 152127
+      supported_features: 6443535
       is_volume_muted: false
   media_player.bedroom_phone:
     state: paused
@@ -53,11 +53,11 @@ states:
       media_duration: 302
       media_position: 95
       media_position_updated_at: "{now-5m}"
-      supported_features: 152139
+      supported_features: 6443531
       is_volume_muted: false
   media_player.kitchen_tablet:
     state: idle
-    attributes: { friendly_name: Kitchen Tablet, supported_features: 152127 }
+    attributes: { friendly_name: Kitchen Tablet, supported_features: 6443535 }
   media_player.office_browser:
     state: unavailable
     attributes: { friendly_name: Firefox }
@@ -67,13 +67,16 @@ cards:
   - { card: library, entity: media_player.living_room_tv }
 
 commands:
+  # Home Assistant's answer is the folder itself. The bench gives one answer to every request, so a tap on a library
+  # shows this root again.
   media_player/browse_media:
-    media_player.living_room_tv:
-      title: Jellyfin
-      media_content_id: ""
-      media_content_type: root
-      can_play: false
-      children:
-        - { title: Movies, media_content_id: 2c2e8f6b1a7a4c0b9d3e5f7a1b2c3d4e, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
-        - { title: Shows, media_content_id: 3d3f9a7c2b8b5d1cae4f6a8b2c3d4e5f, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
-        - { title: Music, media_content_id: 4e4a0b8d3c9c6e2dbf5a7b9c3d4e5f6a, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
+    title: Jellyfin
+    media_content_id: ""
+    media_content_type: root
+    media_class: directory
+    can_play: false
+    can_expand: true
+    children:
+      - { title: Movies, media_content_id: 2c2e8f6b1a7a4c0b9d3e5f7a1b2c3d4e, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
+      - { title: Shows, media_content_id: 3d3f9a7c2b8b5d1cae4f6a8b2c3d4e5f, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
+      - { title: Music, media_content_id: 4e4a0b8d3c9c6e2dbf5a7b9c3d4e5f6a, media_content_type: collection, media_class: directory, can_expand: true, can_play: false }
