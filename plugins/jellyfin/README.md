@@ -76,4 +76,4 @@ Changing an entity in the inspector needs no build.
 ## Tested
 
 On a real Guition 4" screen, with Jellyfin's Samsung (Tizen), Android, Android TV, Chromecast and web apps, and on
-Tessera's bench (CYD, Waveshare 4.3" portrait, JC8012P4A1).
+Tessera's bench with no warning (CYD, Guition 4", Waveshare 4.3" portrait, JC8012P4A1).

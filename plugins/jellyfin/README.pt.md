@@ -80,4 +80,4 @@ Trocar uma entidade no inspetor não precisa de compilação.
 ## Testado
 
 Numa tela Guition de 4" de verdade, com os apps do Jellyfin para Samsung (Tizen), Android, Android TV, Chromecast e
-web, e na bancada do Tessera (CYD, Waveshare 4.3" em pé, JC8012P4A1).
+web, e na bancada do Tessera sem nenhum aviso (CYD, Guition 4", Waveshare 4.3" em pé, JC8012P4A1).

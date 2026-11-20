@@ -731,7 +731,8 @@ class ControlCard : public tessera::Card {
         lh + ui::line_height(Font::HEADLINE) + (has_sub ? lh : 0) + prog_h <= room ? Font::HEADLINE : Font::TITLE;
     const int th = ui::line_height(title_font);
     const bool show_title = th <= room;
-    const bool show_head = show_title && lh + th <= room;
+    // While the player's data is on its way the title alone says so; the line above would say it twice.
+    const bool show_head = show_title && lh + th <= room && player_.play != Play::NONE;
     int need = (show_head ? lh : 0) + (show_title ? th : 0);
     const bool show_sub = has_sub && need + lh <= room;
     need += show_sub ? lh : 0;
@@ -785,7 +786,7 @@ class ControlCard : public tessera::Card {
       ui::set_font(title_, title_font);
       ui::set_text(title_, media ? player_.title
                                  : plugin_->text(here                            ? "nothing_playing"
-                                                 : player_.play == Play::NONE    ? "loading"
+                                                 : player_.play == Play::NONE    ? "waiting"
                                                  : player_.play == Play::TOO_LARGE ? "too_large"
                                                                                    : "offline"));
       ui::set_color(title_, theme::INK);

@@ -10,6 +10,7 @@
     "offline": "Offline",
     "too_large": "Sem dados",
     "loading": "Carregando…",
+    "waiting": "Aguardando o player",
     "nothing_playing": "Nada tocando",
     "choose_player": "Escolha um player do Jellyfin no inspetor",
     "choose_sessions": "Escolha players do Jellyfin no inspetor",

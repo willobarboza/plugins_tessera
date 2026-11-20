@@ -10,6 +10,7 @@
     "offline": "Offline",
     "too_large": "No data",
     "loading": "Loading…",
+    "waiting": "Waiting for the player",
     "nothing_playing": "Nothing playing",
     "choose_player": "Choose a Jellyfin player in the inspector",
     "choose_sessions": "Choose Jellyfin players in the inspector",

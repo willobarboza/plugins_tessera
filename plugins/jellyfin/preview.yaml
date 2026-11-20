@@ -62,8 +62,8 @@ states:
     state: unavailable
     attributes: { friendly_name: Firefox }
 
+# The control card shows with its data when the bench taps the now playing tile; opened by its id it would have none.
 cards:
-  - { card: control, entity: media_player.living_room_tv }
   - { card: library, entity: media_player.living_room_tv }
 
 commands:
