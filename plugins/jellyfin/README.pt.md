@@ -53,7 +53,7 @@ Trocar uma entidade no inspetor não precisa de compilação.
 ## Bom saber
 
 - **Uma biblioteca grande mostra só os primeiros itens.** A resposta do Home Assistant chega à tela com uns 3 KB, então
-  uma pasta mostra só os primeiros itens (uns dez, na ordem do servidor), e o card avisa. Abra uma pasta menor (uma série, uma
+  uma pasta mostra só os primeiros itens (uns dez, na ordem do servidor), e o card avisa que pode haver mais. Abra uma pasta menor (uma série, uma
   temporada, uma coleção) para chegar ao resto.
 - **Sem capas na biblioteca.** As imagens estão no seu servidor Jellyfin, na rede de casa, de onde o Tessera não busca
   nada. O tile tocando agora e o card de controle mostram a capa: o Home Assistant a entrega.
@@ -69,3 +69,9 @@ Trocar uma entidade no inspetor não precisa de compilação.
 - **A capa como descanso de tela.** O passo **Música a tocar** do próprio descanso de tela do Tessera (Configurações
   da tela > Descanso de tela) mostra a capa de um player do Jellyfin enquanto ele toca, sem plugin extra.
 - A biblioteca é lida pelo media player do próprio player, então ele precisa estar conectado ao servidor.
+
+## Testado
+
+Na bancada do Tessera (CYD, Waveshare 4.3" em pé, JC8012P4A1) e numa tela de verdade, com os apps do Jellyfin para
+Samsung (Tizen), Android, Android TV, Chromecast e web. Não testado: a tela Guition de 4", cuja compilação falha no
+núcleo do Tessera com o ESPHome 2026.9.

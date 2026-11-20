@@ -50,7 +50,7 @@ Changing an entity in the inspector needs no build.
 ## Good to know
 
 - **A large library shows its first items only.** An answer of Home Assistant reaches the screen within about 3 KB, so a
-  folder shows only its first items (about ten, in the server's order), and the card says so. Open a smaller folder (a series, a
+  folder shows only its first items (about ten, in the server's order), and the card says there may be more. Open a smaller folder (a series, a
   season, a collection) to reach the rest.
 - **No covers in the library.** Its pictures are on your Jellyfin server, on the home network, where Tessera fetches
   nothing. The now playing tile and the control card do show the cover: Home Assistant hands it over.
@@ -66,3 +66,9 @@ Changing an entity in the inspector needs no build.
 - **The cover as a screensaver.** Tessera's own screensaver step **Music playing** (the screen's Settings >
   Screensaver) shows the cover of a Jellyfin player while it plays; no plugin needed.
 - The library is read through the player's own media player, so it needs that player connected to the server.
+
+## Tested
+
+On Tessera's bench (CYD, Waveshare 4.3" portrait, JC8012P4A1) and on a real screen, with Jellyfin's Samsung (Tizen),
+Android, Android TV, Chromecast and web apps. Not tried: the Guition 4" screen, whose build fails in Tessera's core
+with ESPHome 2026.9.

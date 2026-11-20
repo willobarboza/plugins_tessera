@@ -13,7 +13,7 @@ topics: [media]
 requires:
   esphome: 2026.6.2
 boards: any
-flash_kb: 16
+flash_kb: 24
 
 permissions:
   # The control card: play and pause, seek, stop, the volume and mute, and the library card plays what a finger picks.

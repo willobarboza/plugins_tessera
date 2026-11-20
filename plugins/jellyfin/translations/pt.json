@@ -24,8 +24,8 @@
     "play_sent": "Enviado ao player",
     "not_sent": "Não enviado: a tela pode executar ações?",
     "empty": "Nada aqui",
-    "browse_failed": "Não foi possível ler a biblioteca. O player ainda está conectado?",
-    "first_n": "Os primeiros {n} itens",
+    "browse_failed": "Não foi possível ler a biblioteca. O player ainda está conectado? Toque para tentar de novo.",
+    "first_n": "Mostrando {n}; pode haver mais",
     "page": "{n} / {total}",
     "name_fallback": "Jellyfin"
   },

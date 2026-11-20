@@ -774,7 +774,7 @@ class ControlCard : public tessera::Card {
         ui::set_fill(state_dot_, tone_of(player_.play), theme::MUTED);
         nx += d + ui::px(8);
       }
-      ui::set_text(name_, plugin_->text(player_.play == Play::NONE ? "nothing_playing" : word_of(player_.play)));
+      ui::set_text(name_, plugin_->text(player_.play == Play::NONE ? "loading" : word_of(player_.play)));
       ui::set_color(name_, theme::INK_SOFT);
       lv_obj_set_size(name_, x + w - nx, lh);
       lv_obj_set_pos(name_, nx, y);
@@ -783,7 +783,11 @@ class ControlCard : public tessera::Card {
     visible(title_, show_title);
     if (show_title) {
       ui::set_font(title_, title_font);
-      ui::set_text(title_, media ? player_.title : plugin_->text(here ? "nothing_playing" : "offline"));
+      ui::set_text(title_, media ? player_.title
+                                 : plugin_->text(here                            ? "nothing_playing"
+                                                 : player_.play == Play::NONE    ? "loading"
+                                                 : player_.play == Play::TOO_LARGE ? "too_large"
+                                                                                   : "offline"));
       ui::set_color(title_, theme::INK);
       lv_obj_set_size(title_, w, th);
       lv_obj_set_pos(title_, x, y);
@@ -897,6 +901,11 @@ class LibraryCard : public tessera::Card, public Listener {
 
   void on_tick(uint32_t) override {
     if (note_left_ && --note_left_ == 0) note_text_[0] = 0;
+    // An answer that never comes (Home Assistant restarted, the connection dropped) ends the wait after 20 seconds.
+    if (state_ == State::LOADING && asked_ && ++waited_ >= 20) {
+      asked_ = 0;
+      state_ = State::FAILED;
+    }
     layout();
   }
   void on_theme() override { layout(); }
@@ -948,6 +957,10 @@ class LibraryCard : public tessera::Card, public Listener {
     if (next_.hit(p) && (page_index_ + 1) * per_page_ < count_) {
       page_index_++;
       layout();
+      return;
+    }
+    if (state_ == State::FAILED) {  // a tap on the message asks again
+      browse();
       return;
     }
     if (state_ != State::READY) return;
@@ -1008,6 +1021,7 @@ class LibraryCard : public tessera::Card, public Listener {
       request["data"]["media_content_type"] = level.kind[0] ? level.kind : "collection";
     }
     asked_ = tessera::send(plugin_, request.as<JsonObjectConst>());
+    waited_ = 0;
     if (!asked_) state_ = State::FAILED;
     layout();
   }
@@ -1051,17 +1065,33 @@ class LibraryCard : public tessera::Card, public Listener {
     lv_obj_set_pos(head_, 0, (head_h - th) / 2);
     // The bottom: a note, and the page keys when there is more than one page.
     const int list_top = head_h + gap;
-    const int note_top = height_ - bh;
-    const int row_h = ui::mm(9) > lh + ui::px(8) ? ui::mm(9) : lh + ui::px(8);
-    const int room = note_top - gap - list_top;
-    per_page_ = (room + gap / 2) / (row_h + gap / 2);
-    if (per_page_ > ROWS) per_page_ = ROWS;
+    int note_top = height_ - bh;
+    int row_h = ui::mm(9) > lh + ui::px(8) ? ui::mm(9) : lh + ui::px(8);
+    int room = note_top - gap - list_top;
+    auto rows_in = [&](int space) {
+      const int n = (space + gap / 2) / (row_h + gap / 2);
+      return n > ROWS ? ROWS : n;
+    };
+    per_page_ = rows_in(room);
     if (per_page_ < 1) per_page_ = 1;
+    note_on_ = true;
     const bool paged = state_ == State::READY && count_ > per_page_;
     if (paged) {
-      per_page_ = (room - kh - gap + gap / 2) / (row_h + gap / 2);
-      if (per_page_ > ROWS) per_page_ = ROWS;
-      if (per_page_ < 1) per_page_ = 1;
+      // The page keys take a row of their own. On a small glass (the CYD) the rows get lower first, then the note
+      // gives up its line, so a row never lies under the keys.
+      const int keys = kh + gap;
+      int n = rows_in(room - keys);
+      if (n < 1) {
+        row_h = lh + ui::px(8);
+        n = rows_in(room - keys);
+      }
+      if (n < 1) {
+        note_on_ = false;
+        note_top = height_ + gap;
+        room = note_top - gap - list_top;
+        n = rows_in(room - keys);
+      }
+      per_page_ = n < 1 ? 1 : n;
     }
     const int pages = (count_ + per_page_ - 1) / per_page_;
     if (page_index_ >= pages) page_index_ = pages ? pages - 1 : 0;
@@ -1115,14 +1145,15 @@ class LibraryCard : public tessera::Card, public Listener {
       const char *key = state_ == State::LOADING ? "loading" : state_ == State::EMPTY ? "empty" : "browse_failed";
       ui::set_text(message_, plugin_->text(key));
       ui::set_color(message_, theme::MUTED);
-      lv_obj_set_size(message_, width_, lh * 3);
+      lv_obj_set_size(message_, width_, lh * 4);
       lv_obj_set_pos(message_, 0, list_top + (room - lh) / 2);
     }
-    // The note: what a tap did, or that a long list was cut to its first items (the app shortens a long answer to 8,
-    // 12, 16 or 24 items).
+    // The note: what a tap did, or that a list may have been cut (the app shortens a long answer to 8, 12, 16 or 24
+    // items, and says nothing of it, so a folder of just 12 looks the same).
     std::string note = note_text_;
     if (note.empty() && state_ == State::READY && (count_ == 8 || count_ == 12 || count_ == 16 || count_ == 24))
       note = tessera::format(plugin_->text("first_n"), count_);
+    visible(note_, note_on_);
     ui::set_text(note_, note);
     ui::set_color(note_, theme::MUTED);
     lv_obj_set_size(note_, width_, bh);
@@ -1138,6 +1169,8 @@ class LibraryCard : public tessera::Card, public Listener {
   int count_ = 0, per_page_ = 1, page_index_ = 0;
   State state_ = State::LOADING;
   uint32_t asked_ = 0;
+  int waited_ = 0;  // seconds the answer has been on its way
+  bool note_on_ = true;
   lv_obj_t *head_{}, *page_{}, *message_{}, *note_{};
   Key play_all_, prev_, next_;
   Row rows_[ROWS];
