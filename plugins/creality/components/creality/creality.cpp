@@ -335,7 +335,7 @@ struct Face {
     visible(state, true);
     put(dot, x, y + (lh - d) / 2, d, d);
     round_to(dot, d / 2);
-    ui::set_fill(dot, tone_of(p.st), theme::TRACK);
+    ui::set_fill(dot, tone_of(p.st), theme::MUTED);
     ui::set_font(state, font);
     ui::set_text(state, plugin->text(word_of(p.st)));
     ui::set_color(state, theme::INK_SOFT);
@@ -619,22 +619,31 @@ class CameraTile : public tessera::Tile {
     // The line under the picture, where it leaves the picture at least half the tile.
     const int strip = gap + bh + (progress ? bar_h + ui::px(4) : 0);
     const bool with_strip = height_ - strip >= height_ / 2 && height_ - strip >= ui::mm(10);
+    // A wide, low tile: the picture at the left, 4:3, and the printer's face beside it.
+    const int side_w = height_ * 4 / 3, side_gap = ui::px(10);
+    const bool beside = !with_strip && status_[0] && width_ - side_w - side_gap >= ui::mm(22);
+    const int pw = beside ? side_w : width_;
     const int ph = with_strip ? height_ - strip : height_;
     visible(back_, true);
-    put(back_, 0, 0, width_, ph);
+    put(back_, 0, 0, pw, ph);
     ui::set_fill(back_, Tone::NORMAL, theme::TRACK);
     const int ih = ui::line_height(Font::ICON);
     const bool word = no_picture_ && ph >= ih + bh + gap;
     const int iy = (ph - ih - (word ? bh : 0)) / 2;
-    put(back_icon_, 0, iy, width_, ih);
+    put(back_icon_, 0, iy, pw, ih);
     ui::set_color(back_icon_, theme::MUTED);
     visible(back_word_, word);
     if (word) {
       ui::set_text(back_word_, plugin_->text("no_picture"));
       ui::set_color(back_word_, theme::MUTED);
-      put(back_word_, 0, iy + ih, width_, bh);
+      put(back_word_, 0, iy + ih, pw, bh);
     }
-    put(place_, 0, 0, width_, ph);
+    put(place_, 0, 0, pw, ph);
+    if (beside) {
+      hide_strip();
+      face_.draw(plugin_, printer_, name_, epoch, pw + side_gap, 0, width_ - pw - side_gap, height_);
+      return;
+    }
     if (!with_strip) {
       hide_strip();
       return;
@@ -652,7 +661,7 @@ class CameraTile : public tessera::Tile {
     if (status_[0]) {
       put(dot_, 0, y + (bh - d) / 2, d, d);
       round_to(dot_, d / 2);
-      ui::set_fill(dot_, tone_of(printer_.st), theme::TRACK);
+      ui::set_fill(dot_, tone_of(printer_.st), theme::MUTED);
     }
     std::string right;
     if (progress) {
@@ -843,13 +852,14 @@ class ControlCard : public tessera::Card {
     // The camera at the left, 4:3, when there is room for the words beside it.
     int pw = 0, ph = 0;
     if (place_) {
+      // Two fifths of the card at most, so the words keep the rest.
       ph = room;
       pw = ph * 4 / 3;
-      if (pw > width_ / 2) {
-        pw = width_ / 2;
+      if (pw > width_ * 2 / 5) {
+        pw = width_ * 2 / 5;
         ph = pw * 3 / 4;
       }
-      if (width_ - pw - gap * 2 < ui::mm(30) || ph < ui::mm(14)) pw = ph = 0;
+      if (width_ - pw - gap * 2 < ui::mm(24) || ph < ui::mm(12)) pw = ph = 0;
     }
     visible(back_, pw > 0);
     visible(place_, pw > 0);
@@ -871,7 +881,13 @@ class ControlCard : public tessera::Card {
     const int bar_h = ui::px(8);
     const int rest = (progress ? gap + bar_h : 0) + (!lt.empty() ? small_gap + bh : 0) + (!tt.empty() ? gap + bh : 0) +
                      (!ly.empty() ? small_gap + bh : 0);
-    const Font title_font = lh + ui::line_height(Font::HEADLINE) + rest <= room ? Font::HEADLINE : Font::TITLE;
+    const char *what = p.file[0] && (p.busy() || p.st == St::COMPLETED || p.st == St::STOPPED || p.st == St::ERROR)
+                           ? p.file
+                           : p.st == St::IDLE ? plugin_->text("ready") : "";
+    // The title large where it fits in height and in width, else a step smaller.
+    Font title_font = Font::HEADLINE;
+    if (lh + ui::line_height(Font::HEADLINE) + rest > room || ui::text_width(what, Font::HEADLINE) > w)
+      title_font = ui::text_width(what, Font::TITLE) <= w ? Font::TITLE : Font::BODY_LARGE;
     const int th = ui::line_height(title_font);
     int y = 0;
     // The state, with the percent at its right.
@@ -883,7 +899,7 @@ class ControlCard : public tessera::Card {
       const int d = ui::px(10), dx = d + ui::px(8);
       put(dot_, x, y + (lh - d) / 2, d, d);
       round_to(dot_, d / 2);
-      ui::set_fill(dot_, tone_of(p.st), theme::TRACK);
+      ui::set_fill(dot_, tone_of(p.st), theme::MUTED);
       ui::set_text(state_, plugin_->text(word_of(p.st)));
       ui::set_color(state_, theme::INK_SOFT);
       int sw = w - dx;
@@ -898,9 +914,6 @@ class ControlCard : public tessera::Card {
       put(state_, x + dx, y, sw > 0 ? sw : 1, lh);
       y += lh;
     }
-    const char *what = p.file[0] && (p.busy() || p.st == St::COMPLETED || p.st == St::STOPPED || p.st == St::ERROR)
-                           ? p.file
-                           : p.st == St::IDLE ? plugin_->text("ready") : "";
     const bool show_title = what[0] && y + th <= room;
     visible(title_, show_title);
     if (show_title) {

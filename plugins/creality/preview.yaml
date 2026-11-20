@@ -1,19 +1,6 @@
 # What tools/preview.py shows (docs/PREVIEW.md of tessera-plugins). The entity ids are the ones the Creality WebSocket
 # integration makes for a printer named "K1C"; the states and attributes are what it gives them while it prints.
 tiles:
-  - tile: printer
-    name: K1C
-    entity: sensor.k1c_print_status
-    options: &printer
-      nozzle: sensor.k1c_nozzle_temperature
-      bed: sensor.k1c_bed_temperature
-      chamber: sensor.k1c_chamber_temperature
-      layer: sensor.k1c_working_layer
-      total_layers: sensor.k1c_total_layers
-      light: light.k1c_light
-      pause: button.k1c_pause_print
-      resume: button.k1c_resume_print
-      stop: button.k1c_stop_print
   - tile: camera
     name: K1C camera
     entity: camera.k1c_printer_camera
@@ -21,6 +8,19 @@ tiles:
       status: sensor.k1c_print_status
       nozzle: sensor.k1c_nozzle_temperature
       bed: sensor.k1c_bed_temperature
+      light: light.k1c_light
+      pause: button.k1c_pause_print
+      resume: button.k1c_resume_print
+      stop: button.k1c_stop_print
+  - tile: printer
+    name: K1C
+    entity: sensor.k1c_print_status
+    options:
+      nozzle: sensor.k1c_nozzle_temperature
+      bed: sensor.k1c_bed_temperature
+      chamber: sensor.k1c_chamber_temperature
+      layer: sensor.k1c_working_layer
+      total_layers: sensor.k1c_total_layers
       light: light.k1c_light
       pause: button.k1c_pause_print
       resume: button.k1c_resume_print
