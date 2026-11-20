@@ -15,11 +15,14 @@ the screen reads and controls the integration's entities.
 
 ### 1. First, in Home Assistant
 
-1. Install **Creality WebSocket Integration** from HACS, restart Home Assistant, and add it (Settings > Devices &
-   services > Add integration > Creality WebSocket Integration) with your printer's address.
+1. Install **Creality WebSocket Integration** from HACS (its current version needs Home Assistant 2026.7 or newer),
+   restart Home Assistant, and add it (Settings > Devices & services > Add integration > Creality WebSocket
+   Integration) with your printer's address.
 2. Check the printer's device page. The plugin uses these of its entities: **Print Status**
    (`sensor.<printer>_print_status`), **Nozzle Temperature**, **Bed Temperature**, **Chamber Temperature**, **Working
-   Layer**, **Total Layers**, the **Light**, the **Pause Print**, **Resume Print** and **Stop Print** buttons.
+   Layer**, **Total Layers**, the **Light**, the **Pause Print**, **Resume Print** and **Stop Print** buttons. Not
+   every printer has them all: the K1 SE and the Ender 3 V3 have no light, and the K1 SE, the Ender 3 V3 and the Hi
+   no chamber sensor. Leave those out in the inspector.
 3. Let the screen perform actions: Settings > Devices & services > ESPHome > your screen > **Configure** > tick
    **Allow the device to perform Home Assistant actions**. Without it the keys do nothing.
 
@@ -45,7 +48,7 @@ Changing an entity in the inspector needs no build.
 ## Good to know
 
 - **When the printer is off.** With a power switch bound in the integration's options, the entities go unavailable
-  while it is off and the tile says "Off" or "Offline".
+  while it is off and the tile says "Offline".
 - **The time left** is the printer's own estimate, counted down by the screen between updates; "Done at" is the
   screen's clock plus that time.
 

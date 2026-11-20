@@ -1,4 +1,4 @@
-# Creality: a 3D printer of Creality's K series (K1, K1C, K1 Max, K2, Ender 3 V3, Hi...) on the screen: how its print
+# Creality: a Creality 3D printer (K1, K1C, K1 Max, K2, Ender 3 V3, Hi...) on the screen: how its print
 # goes and its temperatures, and keys to pause, resume and stop it and to switch its light.
 # Everything comes through the Creality WebSocket integration of Home Assistant (ha_creality_ws, from HACS): it talks to
 # the printer on the home network and makes its sensors, buttons and light. Its camera is Tessera's own camera tile.

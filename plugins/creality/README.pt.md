@@ -1,12 +1,12 @@
 # Impressora 3D Creality
 
 Como vai a impressão na sua impressora Creality: o estado, o arquivo, o progresso, o tempo restante e a hora em que
-termina, as temperaturas e a camada; e um cartão com teclas para pausar, retomar e parar a impressão e para ligar e
+termina, as temperaturas e a camada; e um cartão com botões para pausar, retomar e parar a impressão e para ligar e
 desligar a luz da impressora.
 
 **A câmera não faz parte deste plugin.** Para a câmera da impressora, use o tile de câmera nativo do Tessera (no grupo
 Câmeras da biblioteca, com a **Printer Camera** da impressora) e coloque-o ao lado do tile da impressora. Ele atualiza
-a imagem e a abre grande, o que a imagem de um plugin ainda não consegue.
+a imagem e a abre em tela cheia, o que a imagem de um plugin ainda não consegue.
 
 Funciona com a **Creality WebSocket Integration** do Home Assistant (`ha_creality_ws`, do HACS), para as impressoras
 K1, K1C, K1 Max, K1 SE, K2, Ender 3 V3 e Creality Hi. A tela nunca fala com a impressora: quem fala é o Home Assistant,
@@ -16,14 +16,16 @@ e a tela lê e controla as entidades da integração.
 
 ### 1. Primeiro, no Home Assistant
 
-1. Instale a **Creality WebSocket Integration** pelo HACS, reinicie o Home Assistant e adicione a integração
-   (Configurações > Dispositivos e serviços > Adicionar integração > Creality WebSocket Integration) com o endereço da
-   impressora.
+1. Instale a **Creality WebSocket Integration** pelo HACS (a versão atual pede o Home Assistant 2026.7 ou mais
+   novo), reinicie o Home Assistant e adicione a integração (Configurações > Dispositivos e serviços > Adicionar
+   integração > Creality WebSocket Integration) com o endereço da impressora.
 2. Confira a página do dispositivo da impressora. O plugin usa estas entidades: **Print Status**
    (`sensor.<impressora>_print_status`), **Nozzle Temperature**, **Bed Temperature**, **Chamber Temperature**,
-   **Working Layer**, **Total Layers**, a **Light**, os botões **Pause Print**, **Resume Print** e **Stop Print**.
+   **Working Layer**, **Total Layers**, a **Light**, os botões **Pause Print**, **Resume Print** e **Stop Print**. Nem
+   toda impressora tem todas: a K1 SE e a Ender 3 V3 não têm luz, e a K1 SE, a Ender 3 V3 e a Hi não têm sensor de
+   câmara. Deixe essas vazias no inspetor.
 3. Permita que a tela execute ações: Configurações > Dispositivos e serviços > ESPHome > sua tela > **Configurar** >
-   marque **Permitir que o dispositivo execute ações do Home Assistant**. Sem isso as teclas não fazem nada.
+   marque **Permitir que o dispositivo execute ações do Home Assistant**. Sem isso os botões não fazem nada.
 
 ### 2. O tile
 
@@ -40,18 +42,18 @@ Trocar uma entidade no inspetor não precisa compilar de novo.
 
 ### 3. O cartão de controle
 
-1. Toque no tile da impressora. O cartão mostra a impressora grande.
-2. **Teclas**: pausar enquanto imprime, retomar enquanto está pausada, parar e a luz. Uma tecla só aparece quando você
-   escolheu a entidade dela no inspetor do tile e a impressora está num estado em que ela faz algo.
-3. **Parar pergunta antes**: o primeiro toque deixa a tecla vermelha; toque de novo em até cinco segundos para
+1. Toque no tile da impressora. O cartão mostra a impressora em tamanho grande.
+2. **Botões**: pausar enquanto imprime, retomar enquanto está pausada, parar e a luz. Um botão só aparece quando você
+   escolheu a entidade dele no inspetor do tile e a impressora está num estado em que ele faz algo.
+3. **Parar pergunta antes**: o primeiro toque deixa o botão vermelho; toque de novo em até cinco segundos para
    interromper a impressão.
 
 ## Bom saber
 
 - **Com a impressora desligada.** Com uma tomada vinculada nas opções da integração, as entidades ficam indisponíveis
-  enquanto ela está desligada e o tile diz "Desligada" ou "Offline".
+  enquanto ela está desligada e o tile diz "Offline".
 - **O tempo restante** é a estimativa da própria impressora, contada regressivamente pela tela entre as atualizações;
-  "Pronta às" é o relógio da tela mais esse tempo.
+  "Termina às" é o relógio da tela mais esse tempo.
 
 ## Testado
 

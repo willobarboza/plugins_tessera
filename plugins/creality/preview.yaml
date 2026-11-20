@@ -20,14 +20,13 @@ tiles:
     options:
       nozzle: sensor.ender_nozzle_temperature
       bed: sensor.ender_bed_temperature
-      light: light.ender_light
     sizes: [1x1, 2x1, 2x2]
   - tile: printer
     name: Paused
     entity: sensor.k2_print_status
     options:
-      nozzle: sensor.k1c_nozzle_temperature
-      bed: sensor.k1c_bed_temperature
+      nozzle: sensor.k2_nozzle_temperature
+      bed: sensor.k2_bed_temperature
     sizes: [1x1, 2x1]
   - tile: printer
     name: Nothing chosen
@@ -56,7 +55,6 @@ states:
     attributes: { friendly_name: Ender-3 V3 Print Status, file: "", progress: 0, job_time_s: 0, left_time_s: 0 }
   sensor.ender_nozzle_temperature: { state: "24.1", attributes: { friendly_name: Ender Nozzle Temperature, unit_of_measurement: "°C" } }
   sensor.ender_bed_temperature: { state: "23.6", attributes: { friendly_name: Ender Bed Temperature, unit_of_measurement: "°C" } }
-  light.ender_light: { state: "off", attributes: { friendly_name: Ender Light } }
   sensor.k2_print_status:
     state: paused
     attributes:
@@ -65,6 +63,8 @@ states:
       progress: 77
       job_time_s: 9120
       left_time_s: 2460
+  sensor.k2_nozzle_temperature: { state: "220.0", attributes: { friendly_name: K2 Nozzle Temperature, unit_of_measurement: "°C" } }
+  sensor.k2_bed_temperature: { state: "55.0", attributes: { friendly_name: K2 Bed Temperature, unit_of_measurement: "°C" } }
 
 cards:
   - { card: control, entity: sensor.k1c_print_status }

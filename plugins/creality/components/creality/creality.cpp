@@ -59,8 +59,8 @@ static float number_of(JsonVariantConst v) {
 
 // ---- What the printer says: the state of the integration's Print Status sensor and its attributes ----
 
-// TOO_LARGE: the app had no room for this entity in the tile's message.
-enum class St : uint8_t { NONE, TOO_LARGE, OFFLINE, OFF, IDLE, PROCESSING, PRINTING, PAUSED, STOPPED, COMPLETED,
+// TOO_LARGE: the app had no room for this entity in the tile's message. WRONG: the entity is not a Print Status sensor.
+enum class St : uint8_t { NONE, TOO_LARGE, WRONG, OFFLINE, OFF, IDLE, PROCESSING, PRINTING, PAUSED, STOPPED, COMPLETED,
                           ERROR, TESTING };
 
 static St state_of(const char *s) {
@@ -80,6 +80,7 @@ static const char *word_of(St s) {
   switch (s) {
     case St::NONE: return "loading";
     case St::TOO_LARGE: return "too_large";
+    case St::WRONG: return "choose_status";
     case St::OFF: return "off";
     case St::IDLE: return "idle";
     case St::PROCESSING: return "processing";
@@ -119,7 +120,9 @@ struct Printer {
 
   // A job on the printer: what the progress, the keys and the time left are for.
   bool busy() const { return st == St::PRINTING || st == St::PAUSED || st == St::PROCESSING || st == St::TESTING; }
-  bool here() const { return st != St::NONE && st != St::TOO_LARGE && st != St::OFFLINE && st != St::OFF; }
+  bool here() const {
+    return st != St::NONE && st != St::TOO_LARGE && st != St::WRONG && st != St::OFFLINE && st != St::OFF;
+  }
   bool has_progress() const { return busy() && !std::isnan(progress); }
   bool has_temps() const { return !std::isnan(nozzle) || !std::isnan(bed) || !std::isnan(chamber); }
   // The time left now: it counts down from what the printer said while it prints.
@@ -131,18 +134,23 @@ struct Printer {
   }
 };
 
-// The file without its folder and without ".gcode": "/usr/data/printer_data/gcodes/Benchy.gcode" is "Benchy".
+// The file without its folder and without ".gcode": "/usr/data/printer_data/gcodes/Benchy.gcode" is "Benchy". The app
+// cuts a text attribute at 48 bytes, folder and all: a path that long without ".gcode" was cut, and ends in "...".
 static void file_of(const char *path, char *out, size_t size) {
   const char *slash = strrchr(path, '/');
   const char *name = slash ? slash + 1 : path;
   copy_to(out, size, name);
   const size_t n = strlen(out);
   if (n > 6 && strcasecmp(out + n - 6, ".gcode") == 0) out[n - 6] = 0;
+  else if (strlen(path) >= 48 && n > 0 && n + 4 <= size) strcat(out, "\u2026");
 }
 
 // The status sensor's data: {"state", "name", "attributes"}. Nothing there (no entity chosen, or the app waits) leaves
 // NONE; an entity the message had no room for, TOO_LARGE.
 static void parse_status(JsonObjectConst e, Printer &p) {
+  const St was = p.st;
+  const long left_was = p.left;
+  const uint32_t left_at_was = p.left_at;
   const int8_t light = p.light;
   const float nozzle = p.nozzle, bed = p.bed, chamber = p.chamber;
   const long layer = p.layer, total = p.total;
@@ -154,8 +162,13 @@ static void parse_status(JsonObjectConst e, Printer &p) {
   p.layer = layer;
   p.total = total;
   if (e.isNull()) return;
-  if (strcmp(e["wait"] | "", "too_large") == 0) {
+  const char *wait = e["wait"] | "";
+  if (strcmp(wait, "too_large") == 0) {
     p.st = St::TOO_LARGE;
+    return;
+  }
+  if (strcmp(wait, "wrong_entity") == 0) {
+    p.st = St::WRONG;
     return;
   }
   if (!e["state"].is<const char *>()) return;
@@ -168,7 +181,8 @@ static void parse_status(JsonObjectConst e, Printer &p) {
   const float left = number_of(a["left_time_s"]);
   if (!std::isnan(left) && left >= 0) {
     p.left = static_cast<long>(left);
-    p.left_at = tessera::epoch();
+    // Another entity's change (a temperature) brings the same value again: keep counting from when it was new.
+    p.left_at = p.left == left_was && p.st == was && left_at_was ? left_at_was : tessera::epoch();
   }
   const float err = number_of(a["error_code"]);
   p.err = std::isnan(err) ? 0 : static_cast<long>(err);
@@ -356,7 +370,7 @@ struct Face {
 
   void draw(const tessera::Plugin *plugin, const Printer &p, const char *name, uint32_t epoch, int x, int y, int w,
             int h) {
-    if (p.st == St::NONE || p.st == St::TOO_LARGE) {
+    if (p.st == St::NONE || p.st == St::TOO_LARGE || p.st == St::WRONG) {
       message(plugin->text(word_of(p.st)), x, y, w, h);
       return;
     }
@@ -377,6 +391,7 @@ struct Face {
                            ? p.file
                            : name;
     visible(title, true);
+    ui::set_font(title, Font::TITLE);
     ui::set_text(title, what);
     ui::set_color(title, theme::INK);
     put(title, x, at, w, th);
@@ -455,15 +470,17 @@ struct Face {
     }
     visible(big, false);
     // The state in the title's font, the name under it where there is room.
-    const bool under = th + bh <= h;
-    const int top = y + (h - th - (under ? bh : 0)) / 2;
-    head(plugin, p, x, top, w, th <= h ? Font::TITLE : Font::BODY, false);
+    const Font hf = th <= h ? Font::TITLE : Font::BODY;
+    const int hh = ui::line_height(hf);
+    const bool under = hh + bh <= h;
+    const int top = y + (h - hh - (under ? bh : 0)) / 2;
+    head(plugin, p, x, top, w, hf, false);
     visible(title, under);
     if (under) {
       ui::set_font(title, Font::BODY);
       ui::set_text(title, name);
       ui::set_color(title, theme::MUTED);
-      put(title, x, top + th, w, bh);
+      put(title, x, top + hh, w, bh);
     }
   }
 };
@@ -507,7 +524,7 @@ class PrinterTile : public tessera::Tile {
   void on_theme() override { layout(tessera::epoch()); }
 
   void on_tap() override {
-    if (printer_.st == St::NONE) return;
+    if (printer_.st == St::NONE || printer_.st == St::WRONG) return;
     plugin_->card_setup = setup_;
     tessera::open_card(plugin_->plugin_id(), "control", entity_, tile_, given_[0] ? given_ : plugin_->text("name_fallback"));
   }
@@ -525,8 +542,8 @@ class PrinterTile : public tessera::Tile {
   CardSetup setup_;
   int width_ = 0, height_ = 0, tile_ = -1;
   char entity_[96] = "";
-  char given_[84] = "";
-  char name_[84] = "";
+  char given_[52] = "";
+  char name_[52] = "";
   Printer printer_;
   Face face_;
 };
@@ -665,7 +682,10 @@ class ControlCard : public tessera::Card {
                                           setup_.pause[0] != 0;
     want[STOP] = p.busy() && setup_.stop[0] != 0;
     want[LIGHT] = setup_.light[0] != 0 && p.st != St::NONE && p.st != St::OFF;
-    if (!want[STOP]) armed_ = 0;
+    if (!want[STOP] && armed_) {
+      armed_ = 0;
+      note_text_[0] = 0;
+    }
     int count = 0;
     for (bool k : want) count += k;
     const int kh = ui::large() ? ui::mm(12) : ui::mm(9);
