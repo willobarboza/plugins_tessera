@@ -28,8 +28,8 @@ tiles:
     name: printer_name
     icon: printer-3d
     sizes: { min: 1x1, max: 9x9 }
-    # About fourteen labels and blocks, and the printer it keeps.
-    memory: 1800
+    # Nine labels and three blocks, and the printer and the card's keys it keeps.
+    memory: 2100
     domains: [sensor]
     attributes: [file, progress, job_time_s, left_time_s, error_code]
     example: printer_example
