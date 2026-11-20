@@ -1,0 +1,89 @@
+# What tools/preview.py shows (docs/PREVIEW.md of tessera-plugins). The entity ids are the ones the Creality WebSocket
+# integration makes for a printer named "K1C"; the states and attributes are what it gives them while it prints.
+tiles:
+  - tile: printer
+    name: K1C
+    entity: sensor.k1c_print_status
+    options: &printer
+      nozzle: sensor.k1c_nozzle_temperature
+      bed: sensor.k1c_bed_temperature
+      chamber: sensor.k1c_chamber_temperature
+      layer: sensor.k1c_working_layer
+      total_layers: sensor.k1c_total_layers
+      light: light.k1c_light
+      pause: button.k1c_pause_print
+      resume: button.k1c_resume_print
+      stop: button.k1c_stop_print
+  - tile: camera
+    name: K1C camera
+    entity: camera.k1c_printer_camera
+    options:
+      status: sensor.k1c_print_status
+      nozzle: sensor.k1c_nozzle_temperature
+      bed: sensor.k1c_bed_temperature
+      light: light.k1c_light
+      pause: button.k1c_pause_print
+      resume: button.k1c_resume_print
+      stop: button.k1c_stop_print
+  - tile: printer
+    name: Ender idle
+    entity: sensor.ender_print_status
+    options:
+      nozzle: sensor.ender_nozzle_temperature
+      bed: sensor.ender_bed_temperature
+      light: light.ender_light
+    sizes: [1x1, 2x1, 2x2]
+  - tile: printer
+    name: Paused
+    entity: sensor.k2_print_status
+    options:
+      nozzle: sensor.k1c_nozzle_temperature
+      bed: sensor.k1c_bed_temperature
+    sizes: [1x1, 2x1]
+  - tile: camera
+    name: Camera only
+    entity: camera.k1c_printer_camera
+    sizes: [2x2]
+  - tile: printer
+    name: Nothing chosen
+    sizes: [1x1]
+
+states:
+  sensor.k1c_print_status:
+    state: printing
+    attributes:
+      friendly_name: K1C Print Status
+      file: /usr/data/printer_data/gcodes/3DBenchy_PLA_0.2mm.gcode
+      progress: 42
+      job_time_s: 2710
+      left_time_s: 3840
+  sensor.k1c_nozzle_temperature: { state: "210.3", attributes: { friendly_name: K1C Nozzle Temperature, unit_of_measurement: "°C" } }
+  sensor.k1c_bed_temperature: { state: "60.0", attributes: { friendly_name: K1C Bed Temperature, unit_of_measurement: "°C" } }
+  sensor.k1c_chamber_temperature: { state: "34.8", attributes: { friendly_name: K1C Chamber Temperature, unit_of_measurement: "°C" } }
+  sensor.k1c_working_layer: { state: "126", attributes: { friendly_name: K1C Working Layer } }
+  sensor.k1c_total_layers: { state: "300", attributes: { friendly_name: K1C Total Layers } }
+  light.k1c_light: { state: "on", attributes: { friendly_name: K1C Light } }
+  button.k1c_pause_print: { state: unknown, attributes: { friendly_name: K1C Pause Print } }
+  button.k1c_resume_print: { state: unknown, attributes: { friendly_name: K1C Resume Print } }
+  button.k1c_stop_print: { state: unknown, attributes: { friendly_name: K1C Stop Print } }
+  camera.k1c_printer_camera: { state: idle, attributes: { friendly_name: K1C Printer Camera } }
+  sensor.ender_print_status:
+    state: idle
+    attributes: { friendly_name: Ender-3 V3 Print Status, file: "", progress: 0, job_time_s: 0, left_time_s: 0 }
+  sensor.ender_nozzle_temperature: { state: "24.1", attributes: { friendly_name: Ender Nozzle Temperature, unit_of_measurement: "°C" } }
+  sensor.ender_bed_temperature: { state: "23.6", attributes: { friendly_name: Ender Bed Temperature, unit_of_measurement: "°C" } }
+  light.ender_light: { state: "off", attributes: { friendly_name: Ender Light } }
+  sensor.k2_print_status:
+    state: paused
+    attributes:
+      friendly_name: K2 Print Status
+      file: /mnt/UDISK/printer_data/gcodes/Phone_stand.gcode
+      progress: 77
+      job_time_s: 9120
+      left_time_s: 2460
+
+cards:
+  - { card: control, entity: sensor.k1c_print_status }
+
+pictures:
+  "camera:camera.k1c_printer_camera": preview/camera.jpg
