@@ -547,7 +547,7 @@ class CameraTile : public tessera::Tile {
     copy_to(status_, sizeof(status_), c.options["status"] | "");
     setup_from(setup_, c.options);
     setup_.camera = true;
-    copy_to(setup_.status, sizeof(setup_.status), "status");
+    if (status_[0]) copy_to(setup_.status, sizeof(setup_.status), "status");
     // The picture's backdrop, under it: an icon, and a word when the camera has no picture.
     back_ = ui::block(c.parent, theme::TRACK);
     back_icon_ = ui::label(back_, Font::ICON, theme::MUTED);
@@ -849,29 +849,42 @@ class ControlCard : public tessera::Card {
     const int kh = ui::large() ? ui::mm(12) : ui::mm(9);
     const int keys_top = height_ - bh - small_gap - (count ? kh : 0);
     const int room = keys_top - (count ? gap : 0);
-    // The camera at the left, 4:3, when there is room for the words beside it.
-    int pw = 0, ph = 0;
+    // The camera, 4:3, as large as it can be: at the left with the words beside it (a wide card), or on top with the
+    // words under it (a square or tall one), whichever gives the larger picture.
+    int pw = 0, ph = 0, px = 0;
+    bool on_top = false;
     if (place_) {
-      // Two fifths of the card at most, so the words keep the rest.
-      ph = room;
-      pw = ph * 4 / 3;
-      if (pw > width_ * 2 / 5) {
-        pw = width_ * 2 / 5;
-        ph = pw * 3 / 4;
+      const int words = lh + ui::line_height(Font::TITLE) + gap + ui::px(8) + small_gap + bh;
+      int sw = room * 4 / 3;
+      if (sw > width_ * 11 / 20) sw = width_ * 11 / 20;
+      if (width_ - sw - gap * 2 < ui::mm(30)) sw = 0;
+      int th = room - words - gap;
+      int tw = th > 0 ? th * 4 / 3 : 0;
+      if (tw > width_) tw = width_;
+      th = tw * 3 / 4;
+      if (th < ui::mm(12)) tw = th = 0;
+      if (tw * th > sw * (sw * 3 / 4)) {
+        on_top = true;
+        pw = tw;
+        ph = th;
+        px = (width_ - tw) / 2;
+      } else if (sw > 0) {
+        pw = sw;
+        ph = sw * 3 / 4;
       }
-      if (width_ - pw - gap * 2 < ui::mm(24) || ph < ui::mm(12)) pw = ph = 0;
     }
     visible(back_, pw > 0);
     visible(place_, pw > 0);
     if (pw > 0) {
-      put(back_, 0, 0, pw, ph);
+      put(back_, px, 0, pw, ph);
       ui::set_fill(back_, Tone::NORMAL, theme::TRACK);
       const int ih = ui::line_height(Font::ICON);
       put(back_icon_, 0, (ph - ih) / 2, pw, ih);
       ui::set_color(back_icon_, theme::MUTED);
-      put(place_, 0, 0, pw, ph);
+      put(place_, px, 0, pw, ph);
     }
-    const int x = pw ? pw + gap * 2 : 0;
+    const int x = pw && !on_top ? pw + gap * 2 : 0;
+    const int top = pw && on_top ? ph + gap : 0;
     const int w = width_ - x;
     // The words above the keys, each only where it ends above them, the most important first.
     const bool progress = p.has_progress();
@@ -886,12 +899,12 @@ class ControlCard : public tessera::Card {
                            : p.st == St::IDLE ? plugin_->text("ready") : "";
     // The title large where it fits in height and in width, else a step smaller.
     Font title_font = Font::HEADLINE;
-    if (lh + ui::line_height(Font::HEADLINE) + rest > room || ui::text_width(what, Font::HEADLINE) > w)
+    if (top + lh + ui::line_height(Font::HEADLINE) + rest > room || ui::text_width(what, Font::HEADLINE) > w)
       title_font = ui::text_width(what, Font::TITLE) <= w ? Font::TITLE : Font::BODY_LARGE;
     const int th = ui::line_height(title_font);
-    int y = 0;
+    int y = top;
     // The state, with the percent at its right.
-    const bool show_head = lh <= room;
+    const bool show_head = y + lh <= room;
     visible(dot_, show_head);
     visible(state_, show_head);
     visible(pct_, show_head && progress);
