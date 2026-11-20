@@ -441,7 +441,8 @@ struct Face {
       visible(big, true);
       ui::set_font(big, f);
       ui::set_text(big, t);
-      ui::set_tone(big, p.st == St::PAUSED ? Tone::BUSY : Tone::NORMAL, theme::INK);
+      // Ink, not the paused tone: amber this large is too faint on a light ground. The dot and word under it say paused.
+      ui::set_tone(big, Tone::NORMAL, theme::INK);
       const bool under = fh + bh <= h;
       const int top = y + (h - fh - (under ? bh : 0)) / 2;
       put(big, x, top, w, fh);
