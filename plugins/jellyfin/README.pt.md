@@ -1,7 +1,12 @@
 # Jellyfin
 
+> **O controle depende do aparelho.** A tela sempre mostra o que toca, mas tocar, pausar, avançar, o volume e a
+> biblioteca só funcionam quando o app do Jellyfin naquele aparelho aceita comandos remotos. Muitos não aceitam, como
+> o Chromecast e alguns apps de TV e de celular. Veja "Nem todo app do Jellyfin aceita comandos" abaixo para um teste
+> rápido.
+
 O que toca nos seus clientes Jellyfin, com a capa, a série e o episódio ou o artista, e quanto já passou; um card com
-teclas para tocar e pausar, avançar e voltar, parar, mudar o volume e silenciar; e suas bibliotecas para navegar e
+botões para tocar e pausar, avançar e voltar, parar, mudar o volume e silenciar; e suas bibliotecas para navegar e
 tocar a partir da tela.
 
 Funciona com a integração **Jellyfin** do próprio Home Assistant. A tela nunca fala com o servidor Jellyfin: quem fala
@@ -17,7 +22,8 @@ Funciona com a integração **Jellyfin** do próprio Home Assistant. A tela nunc
    ou aparelho que se conecta ao servidor (`media_player.living_room_tv`). Ele continua no Home Assistant quando o app
    fecha, como indisponível, até o app se conectar de novo.
 3. Deixe a tela executar ações: Configurações > Dispositivos e serviços > ESPHome > sua tela > **Configurar** > marque
-   **Allow the device to perform Home Assistant actions**. Sem isso as teclas não fazem nada.
+   **Permitir que o dispositivo execute ações do Home Assistant** (*Allow the device to perform Home Assistant
+   actions*). Sem isso os botões não fazem nada.
 
 ### 2. Os tiles
 
@@ -36,10 +42,12 @@ Trocar uma entidade no inspetor não precisa de compilação.
 
 1. Toque num tile tocando agora, ou numa linha do tile de sessões. O card abre com a capa, o que toca e quanto já
    passou.
-2. **Teclas**: voltar e avançar pelo **Salto do avanço** do tile (30 s se você não mudar), tocar e pausar, parar,
-   volume para baixo e para cima, e silenciar. Uma tecla só aparece quando o app do Jellyfin diz que consegue fazer
-   aquilo: um navegador não tem volume próprio, por exemplo.
+2. **Botões**: voltar e avançar pelo **Pulo ao voltar e avançar** do tile (30 s se você não mudar), tocar e pausar, parar,
+   volume para baixo e para cima, e silenciar. Um botão só aparece quando o app do Jellyfin diz que consegue fazer
+   aquilo: nem todo app informa um volume, por exemplo.
 3. **Biblioteca** abre o card da biblioteca para aquele player.
+4. **Se um botão não faz nada**, o app do Jellyfin do aparelho não está aceitando comandos remotos: isso depende do
+   aparelho e do app, não da tela. O mesmo botão no card de mídia do próprio Home Assistant também não funciona.
 
 ### 4. A biblioteca
 
@@ -52,10 +60,24 @@ Trocar uma entidade no inspetor não precisa de compilação.
 ## Bom saber
 
 - **Uma biblioteca grande mostra só os primeiros itens.** A resposta do Home Assistant chega à tela com uns 3 KB, então
-  uma pasta mostra os primeiros 8 a 24 itens, em ordem de nome, e o card avisa. Abra uma pasta menor (uma série, uma
+  uma pasta mostra só os primeiros itens (uns dez, na ordem do servidor), e o card avisa que pode haver mais. Abra uma pasta menor (uma série, uma
   temporada, uma coleção) para chegar ao resto.
 - **Sem capas na biblioteca.** As imagens estão no seu servidor Jellyfin, na rede de casa, de onde o Tessera não busca
   nada. O tile tocando agora e o card de controle mostram a capa: o Home Assistant a entrega.
 - **Sem próxima e anterior.** O media player da integração não tem essa ação; use o avanço ou a biblioteca.
-- Um app do Jellyfin que não aceita controle remoto (alguns apps de TV) mostra o que toca, mas não tem teclas.
+- **Vários players com o mesmo nome.** O Jellyfin cria um media player para cada sessão, então uma TV pode aparecer
+  várias vezes (três "Samsung Smart TV", `media_player.samsung_smart_tv_2`...). Escolha aquele cujo estado muda
+  enquanto toca, e escolha de novo se o app criar outro.
+- **Nem todo app do Jellyfin aceita comandos.** Um app que não aceita controle remoto mostra o que toca, mas não tem
+  botões nem biblioteca. O receptor do Chromecast não informa nenhum comando, e numa casa um app da Samsung (Tizen) e
+  um de Android não aceitaram nada do Home Assistant, enquanto um navegador aceitou. Teste rápido: o painel do
+  Jellyfin só mostra botões de controle numa sessão quando o servidor consegue controlá-la; sem eles, nem o Home
+  Assistant nem a tela conseguem.
+- **A capa como descanso de tela.** O passo **Música a tocar** do próprio descanso de tela do Tessera (Configurações
+  da tela > Descanso de tela) mostra a capa de um player do Jellyfin enquanto ele toca, sem plugin extra.
 - A biblioteca é lida pelo media player do próprio player, então ele precisa estar conectado ao servidor.
+
+## Testado
+
+Numa tela Guition de 4" de verdade, com os apps do Jellyfin para Samsung (Tizen), Android, Android TV, Chromecast e
+web, e na bancada do Tessera (CYD, Waveshare 4.3" em pé, JC8012P4A1).

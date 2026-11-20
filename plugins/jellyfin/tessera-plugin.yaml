@@ -3,7 +3,7 @@
 # that is connected to the server. The screen never talks to the Jellyfin server itself. Every field is explained in
 # docs/MANIFEST.md of tessera-plugins.
 id: jellyfin
-version: 0.1.1
+version: 0.1.2
 api: "0.17"
 icon: television-play
 maintainer: willobarboza
@@ -13,7 +13,7 @@ topics: [media]
 requires:
   esphome: 2026.6.2
 boards: any
-flash_kb: 16
+flash_kb: 24
 
 permissions:
   # The control card: play and pause, seek, stop, the volume and mute, and the library card plays what a finger picks.
@@ -35,7 +35,7 @@ tiles:
     pictures: 1
     domains: [media_player]
     attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_album_name,
-                 media_content_type, media_duration, media_position, media_position_updated_at, supported_features,
+                 media_duration, media_position, media_position_updated_at, supported_features,
                  is_volume_muted]
     example: now_example
     options:
@@ -46,8 +46,8 @@ tiles:
     name: sessions_name
     icon: account-group
     sizes: { min: 1x1, max: 9x9 }
-    # A head line and eight rows of a dot, a name and what plays.
-    memory: 3600
+    # A head line and eight rows of a dot, a name and what plays, and the eight players it keeps.
+    memory: 6000
     example: sessions_example
     options:
       - { id: session_1, kind: entity, domains: [media_player], attributes: [media_title, media_series_title, media_season, media_episode, media_artist, media_duration, media_position, media_position_updated_at, supported_features, is_volume_muted], label: session_1, hint: session_hint }

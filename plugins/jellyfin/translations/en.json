@@ -8,6 +8,7 @@
     "idle": "Idle",
     "off": "Off",
     "offline": "Offline",
+    "too_large": "No data",
     "loading": "Loading…",
     "nothing_playing": "Nothing playing",
     "choose_player": "Choose a Jellyfin player in the inspector",
@@ -23,8 +24,8 @@
     "play_sent": "Sent to the player",
     "not_sent": "Not sent: may the screen perform actions?",
     "empty": "Nothing here",
-    "browse_failed": "Could not read the library. Is the player still connected?",
-    "first_n": "The first {n} items",
+    "browse_failed": "Couldn't read the library. Is the player still connected? Tap to try again.",
+    "first_n": "Showing {n}; there may be more",
     "page": "{n} / {total}",
     "name_fallback": "Jellyfin"
   },
