@@ -1,11 +1,11 @@
 # Creality: a 3D printer of Creality's K series (K1, K1C, K1 Max, K2, Ender 3 V3, Hi...) on the screen: how its print
-# goes, its temperatures and its camera, and keys to pause, resume and stop it and to switch its light.
+# goes and its temperatures, and keys to pause, resume and stop it and to switch its light.
 # Everything comes through the Creality WebSocket integration of Home Assistant (ha_creality_ws, from HACS): it talks to
-# the printer on the home network and makes its sensors, buttons, light and camera. The screen never talks to the
-# printer itself. Every field is explained in docs/MANIFEST.md of tessera-plugins.
+# the printer on the home network and makes its sensors, buttons and light. Its camera is Tessera's own camera tile.
+# The screen never talks to the printer itself. Every field is explained in docs/MANIFEST.md of tessera-plugins.
 id: creality
 version: 0.1.0
-api: "0.17"
+api: "0.15"
 icon: printer-3d
 maintainer: willobarboza
 license: MIT
@@ -44,28 +44,7 @@ tiles:
       - { id: resume, kind: entity, domains: [button], label: resume }
       - { id: stop, kind: entity, domains: [button], label: stop }
 
-  # The printer's camera, with a line under it of how the print goes. On a screen that streams (the ESP32-P4 boards)
-  # it can show the camera live. A tap opens the control card.
-  - id: camera
-    name: camera_name
-    icon: cctv
-    sizes: { min: 1x1, max: 9x9 }
-    memory: 1800
-    pictures: 1
-    domains: [camera]
-    example: camera_example
-    options:
-      - { id: status, kind: entity, domains: [sensor], attributes: [file, progress, job_time_s, left_time_s, error_code], label: status, hint: status_hint }
-      - { id: live, kind: toggle, default: false, label: live, hint: live_hint }
-      - { id: nozzle, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: nozzle, hint: nozzle_hint }
-      - { id: bed, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: bed }
-      - { id: light, kind: entity, domains: [light, switch], label: light, hint: light_hint }
-      - { id: pause, kind: entity, domains: [button], label: pause, hint: buttons_hint }
-      - { id: resume, kind: entity, domains: [button], label: resume }
-      - { id: stop, kind: entity, domains: [button], label: stop }
-
 cards:
   # The printer large: its state, the file, the progress, the temperatures, the layer and when it is done, and keys to
-  # pause or resume, to stop (a second tap confirms) and to switch the light. Opened from the camera tile it shows the
-  # camera too.
-  - { id: control, name: control_name, wide: true, pictures: 1 }
+  # pause or resume, to stop (a second tap confirms) and to switch the light.
+  - { id: control, name: control_name, wide: true }

@@ -12,7 +12,6 @@ using tessera::Tone;
 namespace ui = tessera::ui;
 
 // Icons of Tessera's set (screen_manager/app/tile_icons.py).
-static constexpr uint32_t ICON_CAMERA = 0xF07AE;    // cctv
 static constexpr uint32_t ICON_PLAY = 0xF040A;      // play
 static constexpr uint32_t ICON_PAUSE = 0xF03E4;     // pause
 static constexpr uint32_t ICON_STOP = 0xF04DB;      // stop
@@ -531,176 +530,6 @@ class PrinterTile : public tessera::Tile {
   Face face_;
 };
 
-// ---- The camera tile: its entity is the printer's camera; the status sensor is an option ----
-// The picture on top, a line under it of how the print goes. Nothing lies over the picture, so it may stream.
-
-class CameraTile : public tessera::Tile {
- public:
-  explicit CameraTile(Creality *plugin) : plugin_(plugin) {}
-
-  void create(const tessera::TileContext &c) override {
-    width_ = c.width;
-    height_ = c.height;
-    tile_ = c.tile;
-    copy_to(entity_, sizeof(entity_), c.entity);
-    copy_to(given_, sizeof(given_), c.name);
-    copy_to(status_, sizeof(status_), c.options["status"] | "");
-    setup_from(setup_, c.options);
-    setup_.camera = true;
-    if (status_[0]) copy_to(setup_.status, sizeof(setup_.status), "status");
-    // The picture's backdrop, under it: an icon, and a word when the camera has no picture.
-    back_ = ui::block(c.parent, theme::TRACK);
-    back_icon_ = ui::label(back_, Font::ICON, theme::MUTED);
-    lv_obj_set_style_text_align(back_icon_, LV_TEXT_ALIGN_CENTER, 0);
-    ui::set_text(back_icon_, ui::icon(ICON_CAMERA));
-    back_word_ = ui::label(back_, Font::BODY, theme::MUTED);
-    lv_obj_set_style_text_align(back_word_, LV_TEXT_ALIGN_CENTER, 0);
-    if (ui::pictures() && entity_[0]) {
-      place_ = ui::picture(c.parent, tessera::Placeholder::NONE);
-      if (c.options["live"] | false) ui::live(place_, true);
-    }
-    bar_.make(c.parent);
-    dot_ = ui::block(c.parent, theme::MUTED);
-    line_ = ui::label(c.parent, Font::BODY, theme::INK_SOFT);
-    right_ = ui::label(c.parent, Font::BODY, theme::INK);
-    lv_obj_set_style_text_align(right_, LV_TEXT_ALIGN_RIGHT, 0);
-    // A screen without pictures shows the printer's face instead.
-    face_.make(c.parent);
-  }
-
-  void on_state(JsonObjectConst data) override {
-    JsonObjectConst entities = data["entities"];
-    parse_extras(entities, printer_);
-    parse_status(entities["status"], printer_);
-    copy_to(camera_name_, sizeof(camera_name_), data["name"] | "");
-    name_of(plugin_, given_, camera_name_, name_, sizeof(name_));
-    if (place_) ui::set_picture(place_, std::string("camera:") + entity_, tessera::Fit::COVER);
-  }
-
-  void on_picture(lv_obj_t *place, tessera::PictureState state) override {
-    if (place != place_) return;
-    no_picture_ = state != tessera::PictureState::SHOWN;
-    layout(tessera::epoch());
-  }
-
-  void on_tick(uint32_t epoch) override { layout(epoch); }
-  void on_theme() override { layout(tessera::epoch()); }
-
-  void on_tap() override {
-    if (!entity_[0]) return;
-    plugin_->card_setup = setup_;
-    tessera::open_card(plugin_->plugin_id(), "control", entity_, tile_, given_[0] ? given_ : plugin_->text("name_fallback"));
-  }
-
- private:
-  void hide_strip() {
-    for (lv_obj_t *p : {dot_, line_, right_}) visible(p, false);
-    bar_.hide();
-  }
-
-  void layout(uint32_t epoch) {
-    if (!entity_[0]) {
-      visible(back_, false);
-      hide_strip();
-      face_.message(plugin_->text("choose_camera"), 0, 0, width_, height_);
-      return;
-    }
-    if (!place_) {
-      // No pictures on this screen (the CYD): the printer's face, or what to choose for it.
-      visible(back_, false);
-      hide_strip();
-      if (!status_[0]) face_.message(plugin_->text("no_pictures"), 0, 0, width_, height_);
-      else face_.draw(plugin_, printer_, name_, epoch, 0, 0, width_, height_);
-      return;
-    }
-    face_.hide();
-    const int gap = ui::px(6), bh = ui::line_height(Font::BODY), bar_h = ui::px(4);
-    const bool progress = status_[0] && printer_.has_progress();
-    // The line under the picture, where it leaves the picture at least half the tile.
-    const int strip = gap + bh + (progress ? bar_h + ui::px(4) : 0);
-    const bool with_strip = height_ - strip >= height_ / 2 && height_ - strip >= ui::mm(10);
-    // A wide, low tile: the picture at the left, 4:3, and the printer's face beside it.
-    const int side_w = height_ * 4 / 3, side_gap = ui::px(10);
-    const bool beside = !with_strip && status_[0] && width_ - side_w - side_gap >= ui::mm(22);
-    const int pw = beside ? side_w : width_;
-    const int ph = with_strip ? height_ - strip : height_;
-    visible(back_, true);
-    put(back_, 0, 0, pw, ph);
-    ui::set_fill(back_, Tone::NORMAL, theme::TRACK);
-    const int ih = ui::line_height(Font::ICON);
-    const bool word = no_picture_ && ph >= ih + bh + gap;
-    const int iy = (ph - ih - (word ? bh : 0)) / 2;
-    put(back_icon_, 0, iy, pw, ih);
-    ui::set_color(back_icon_, theme::MUTED);
-    visible(back_word_, word);
-    if (word) {
-      ui::set_text(back_word_, plugin_->text("no_picture"));
-      ui::set_color(back_word_, theme::MUTED);
-      put(back_word_, 0, iy + ih, pw, bh);
-    }
-    put(place_, 0, 0, pw, ph);
-    if (beside) {
-      hide_strip();
-      face_.draw(plugin_, printer_, name_, epoch, pw + side_gap, 0, width_ - pw - side_gap, height_);
-      return;
-    }
-    if (!with_strip) {
-      hide_strip();
-      return;
-    }
-    int y = ph + gap;
-    if (progress) {
-      bar_.place(printer_, 0, y, width_, bar_h);
-      y += bar_h + ui::px(4);
-    } else {
-      bar_.hide();
-    }
-    // Without a status sensor, the camera's name; with one, the state and at the right the percent or the time left.
-    const int d = ui::px(8), dx = status_[0] ? d + ui::px(6) : 0;
-    visible(dot_, status_[0] != 0);
-    if (status_[0]) {
-      put(dot_, 0, y + (bh - d) / 2, d, d);
-      round_to(dot_, d / 2);
-      ui::set_fill(dot_, tone_of(printer_.st), theme::MUTED);
-    }
-    std::string right;
-    if (progress) {
-      right = percent_text(printer_.progress);
-      const long l = printer_.left_now(epoch);
-      if (l >= 0) {
-        const std::string both = right + " · " + duration_text(plugin_, l);
-        if (ui::text_width(both, Font::BODY) <= width_ / 2) right = both;
-      }
-    }
-    const int rw = right.empty() ? 0 : ui::text_width(right, Font::BODY) + ui::px(4);
-    visible(right_, rw > 0);
-    if (rw) {
-      ui::set_text(right_, right);
-      ui::set_color(right_, theme::INK);
-      put(right_, width_ - rw, y, rw, bh);
-    }
-    visible(line_, true);
-    ui::set_text(line_, status_[0] ? plugin_->text(word_of(printer_.st)) : name_);
-    ui::set_color(line_, theme::INK_SOFT);
-    const int lw = width_ - dx - (rw ? rw + ui::px(4) : 0);
-    put(line_, dx, y, lw > 0 ? lw : 1, bh);
-  }
-
-  Creality *plugin_;
-  CardSetup setup_;
-  int width_ = 0, height_ = 0, tile_ = -1;
-  char entity_[96] = "";
-  char status_[96] = "";
-  char given_[84] = "";
-  char camera_name_[84] = "";
-  char name_[84] = "";
-  bool no_picture_ = false;
-  Printer printer_;
-  lv_obj_t *back_{}, *back_icon_{}, *back_word_{}, *place_{}, *dot_{}, *line_{}, *right_{};
-  Bar bar_;
-  Face face_;
-};
-
 // ---- A key of the card: a rounded block with an icon in the middle ----
 
 struct Key {
@@ -748,13 +577,6 @@ class ControlCard : public tessera::Card {
     width_ = c.width;
     height_ = c.height;
     copy_to(entity_, sizeof(entity_), c.entity);
-    if (setup_.camera && ui::pictures() && entity_[0]) {
-      back_ = ui::block(c.parent, theme::TRACK);
-      back_icon_ = ui::label(back_, Font::ICON, theme::MUTED);
-      lv_obj_set_style_text_align(back_icon_, LV_TEXT_ALIGN_CENTER, 0);
-      ui::set_text(back_icon_, ui::icon(ICON_CAMERA));
-      place_ = ui::picture(c.parent, tessera::Placeholder::NONE);
-    }
     dot_ = ui::block(c.parent, theme::MUTED);
     state_ = ui::label(c.parent, Font::BODY_LARGE, theme::INK_SOFT);
     pct_ = ui::label(c.parent, Font::BODY_LARGE, theme::INK);
@@ -774,8 +596,7 @@ class ControlCard : public tessera::Card {
   void on_state(JsonObjectConst data) override {
     JsonObjectConst entities = data["entities"];
     parse_extras(entities, printer_);
-    parse_status(setup_.status[0] ? entities[setup_.status].as<JsonObjectConst>() : data, printer_);
-    if (place_) ui::set_picture(place_, std::string("camera:") + entity_, tessera::Fit::COVER);
+    parse_status(data, printer_);
     layout(tessera::epoch());
   }
 
@@ -849,44 +670,7 @@ class ControlCard : public tessera::Card {
     const int kh = ui::large() ? ui::mm(12) : ui::mm(9);
     const int keys_top = height_ - bh - small_gap - (count ? kh : 0);
     const int room = keys_top - (count ? gap : 0);
-    // The camera, 4:3, as large as it can be: at the left with the words beside it (a wide card), or on top with the
-    // words under it (a square or tall one), whichever gives the larger picture.
-    int pw = 0, ph = 0, px = 0;
-    bool on_top = false;
-    if (place_) {
-      const int words = lh + ui::line_height(Font::TITLE) + gap + ui::px(8) + small_gap + bh;
-      int sw = room * 4 / 3;
-      if (sw > width_ * 11 / 20) sw = width_ * 11 / 20;
-      if (width_ - sw - gap * 2 < ui::mm(30)) sw = 0;
-      int th = room - words - gap;
-      int tw = th > 0 ? th * 4 / 3 : 0;
-      if (tw > width_) tw = width_;
-      th = tw * 3 / 4;
-      if (th < ui::mm(12)) tw = th = 0;
-      // A landscape card keeps the words beside the camera; a square or tall one puts them under it.
-      const bool landscape = sw > 0 && width_ * 3 > room * 4;
-      if (!landscape && tw * th > sw * (sw * 3 / 4)) {
-        on_top = true;
-        pw = tw;
-        ph = th;
-        px = (width_ - tw) / 2;
-      } else if (sw > 0) {
-        pw = sw;
-        ph = sw * 3 / 4;
-      }
-    }
-    visible(back_, pw > 0);
-    visible(place_, pw > 0);
-    if (pw > 0) {
-      put(back_, px, 0, pw, ph);
-      ui::set_fill(back_, Tone::NORMAL, theme::TRACK);
-      const int ih = ui::line_height(Font::ICON);
-      put(back_icon_, 0, (ph - ih) / 2, pw, ih);
-      ui::set_color(back_icon_, theme::MUTED);
-      put(place_, px, 0, pw, ph);
-    }
-    const int x = pw && !on_top ? pw + gap * 2 : 0;
-    const int top = pw && on_top ? ph + gap : 0;
+    const int x = 0, top = 0;
     const int w = width_ - x;
     // The words above the keys, each only where it ends above them, the most important first.
     const bool progress = p.has_progress();
@@ -999,7 +783,6 @@ class ControlCard : public tessera::Card {
     }
     // Under the keys: what a tap did, or what to choose when the card has nothing to show.
     const char *note = note_text_[0]                  ? note_text_
-                       : p.st == St::NONE && setup_.camera && !setup_.status[0] ? plugin_->text("choose_status")
                        : !count && !setup_.pause[0] && !setup_.stop[0] && !setup_.light[0] ? plugin_->text("choose_keys")
                                                                                            : "";
     ui::set_text(note_, note);
@@ -1012,7 +795,7 @@ class ControlCard : public tessera::Card {
   int width_ = 0, height_ = 0;
   char entity_[96] = "";
   Printer printer_;
-  lv_obj_t *back_{}, *back_icon_{}, *place_{}, *dot_{}, *state_{}, *pct_{}, *title_{}, *left_{}, *eta_{}, *temps_{},
+  lv_obj_t *dot_{}, *state_{}, *pct_{}, *title_{}, *left_{}, *eta_{}, *temps_{},
       *layer_{}, *note_{};
   Bar bar_;
   Key keys_[KEYS];
@@ -1022,7 +805,6 @@ class ControlCard : public tessera::Card {
 
 void Creality::setup() {
   add_tile("printer", [this]() { return new PrinterTile(this); });
-  add_tile("camera", [this]() { return new CameraTile(this); });
   add_card("control", [this]() { return new ControlCard(this); }, true);
 }
 
