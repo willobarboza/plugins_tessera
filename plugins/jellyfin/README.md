@@ -69,6 +69,5 @@ Changing an entity in the inspector needs no build.
 
 ## Tested
 
-On Tessera's bench (CYD, Waveshare 4.3" portrait, JC8012P4A1) and on a real screen, with Jellyfin's Samsung (Tizen),
-Android, Android TV, Chromecast and web apps. Not tried: the Guition 4" screen, whose build fails in Tessera's core
-with ESPHome 2026.9.
+On a real Guition 4" screen, with Jellyfin's Samsung (Tizen), Android, Android TV, Chromecast and web apps, and on
+Tessera's bench (CYD, Waveshare 4.3" portrait, JC8012P4A1).

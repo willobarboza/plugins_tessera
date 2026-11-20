@@ -72,6 +72,5 @@ Trocar uma entidade no inspetor não precisa de compilação.
 
 ## Testado
 
-Na bancada do Tessera (CYD, Waveshare 4.3" em pé, JC8012P4A1) e numa tela de verdade, com os apps do Jellyfin para
-Samsung (Tizen), Android, Android TV, Chromecast e web. Não testado: a tela Guition de 4", cuja compilação falha no
-núcleo do Tessera com o ESPHome 2026.9.
+Numa tela Guition de 4" de verdade, com os apps do Jellyfin para Samsung (Tizen), Android, Android TV, Chromecast e
+web, e na bancada do Tessera (CYD, Waveshare 4.3" em pé, JC8012P4A1).
