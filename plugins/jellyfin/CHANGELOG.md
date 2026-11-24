@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 - 2026-11-24
+- A now playing tile whose player's data did not fit the screen's message says "No data" instead of waiting for ever.
+  The control card says the same and shows no keys for it.
+- The README names Tessera's preview tool for what was tried off a real screen.
+
 ## 0.1.3 - 2026-11-19
 - The control card says "Waiting for the player" once, in its title, while the player's data is on its way.
 
