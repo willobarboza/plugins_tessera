@@ -118,6 +118,11 @@ struct Player {
 // A player's data: {"state", "name", "attributes"}. Nothing there (no entity chosen, or the app waits) leaves NONE.
 static void parse_player(JsonObjectConst e, const tessera::Plugin *plugin, Player &p) {
   p = Player();
+  // The app had no room for this player in the tile's message: say so, never "loading" for ever.
+  if (!e.isNull() && strcmp(e["wait"] | "", "too_large") == 0) {
+    p.play = Play::TOO_LARGE;
+    return;
+  }
   if (e.isNull() || e["wait"].is<const char *>() || !e["state"].is<const char *>()) return;
   p.play = play_of(e["state"] | "");
   copy_to(p.name, sizeof(p.name), e["name"] | "");
@@ -302,11 +307,13 @@ class NowTile : public tessera::Tile {
   }
 
   void layout(uint32_t epoch) {
-    if (player_.play == Play::NONE) {
+    if (player_.play == Play::NONE || player_.play == Play::TOO_LARGE) {
       hide_all();
       visible(note_, true);
-      // No entity yet, or its first state still on its way.
-      ui::set_text(note_, plugin_->text(entity_[0] ? "loading" : "choose_player"));
+      // No entity yet, its first state still on its way, or a state too large for the tile's message.
+      ui::set_text(note_, plugin_->text(player_.play == Play::TOO_LARGE ? "too_large"
+                                        : entity_[0]                     ? "loading"
+                                                                         : "choose_player"));
       ui::set_color(note_, theme::MUTED);
       lv_obj_set_size(note_, width_, height_);
       lv_obj_set_pos(note_, 0, 0);
@@ -465,10 +472,8 @@ class SessionsTile : public tessera::Tile {
       snprintf(id, sizeof(id), "session_%d", i + 1);
       Entry &e = entries_[count_];
       JsonObjectConst one = entities[id];
+      // A chosen player the message had no room for keeps its row (TOO_LARGE), so it never seems gone while it plays.
       parse_player(one, plugin_, e.player);
-      // A chosen player the message had no room for keeps its row, so it never seems gone while it plays.
-      if (e.player.play == Play::NONE && entities_[i][0] && strcmp(one["wait"] | "", "too_large") == 0)
-        e.player.play = Play::TOO_LARGE;
       if (e.player.play == Play::NONE) continue;
       const bool active = e.player.play == Play::PLAYING || e.player.play == Play::PAUSED;
       if (active_only_ && !active) continue;
@@ -700,7 +705,7 @@ class ControlCard : public tessera::Card {
     const int gap = ui::px(10);
     const int bh = ui::line_height(Font::BODY), lh = ui::line_height(Font::BODY_LARGE);
     const bool media = player_.has_media();
-    const bool here = player_.play != Play::NONE && player_.play != Play::GONE;
+    const bool here = player_.play != Play::NONE && player_.play != Play::GONE && player_.play != Play::TOO_LARGE;
     // The keys: the player's keys in a row, the volume and the library in a second.
     bool want[KEYS] = {};
     if (here && media) {
