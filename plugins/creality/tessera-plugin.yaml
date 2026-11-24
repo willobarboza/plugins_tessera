@@ -4,7 +4,7 @@
 # the printer on the home network and makes its sensors, buttons and light. Its camera is Tessera's own camera tile.
 # The screen never talks to the printer itself. Every field is explained in docs/MANIFEST.md of tessera-plugins.
 id: creality
-version: 0.1.0
+version: 0.1.1
 api: "0.15"
 icon: printer-3d
 maintainer: willobarboza
@@ -19,7 +19,7 @@ flash_kb: 20
 permissions:
   # The control card: the integration's Pause, Resume and Stop buttons, and the printer's light (a light, or a switch
   # of a smart plug's light).
-  home_assistant_actions: [button.press, light.toggle, switch.toggle]
+  home_assistant_actions: [button.press, light.turn_on, light.turn_off, switch.turn_on, switch.turn_off]
 
 tiles:
   # The printer: its state, the file it prints, how far along and how long it still takes, the temperatures and the
