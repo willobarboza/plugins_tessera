@@ -670,8 +670,8 @@ class ControlCard : public tessera::Card {
         if (sent) say("stop_sent", 4);
         break;
       case LIGHT:
-        sent = tessera::action(strncmp(setup_.light, "switch.", 7) == 0 ? "switch.toggle" : "light.toggle",
-                               setup_.light);
+        // A wish, as Tessera's own controls: the key shows the new value at once and Home Assistant squares it.
+        sent = tessera::wish(setup_.light, tessera::Wish::ON_OFF, printer_.light == 1 ? "off" : "on");
         break;
       default:
         return;
