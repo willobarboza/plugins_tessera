@@ -57,4 +57,5 @@ Trocar uma entidade no inspetor não precisa compilar de novo.
 
 ## Testado
 
-Na bancada do Tessera (CYD, Guition 4", Waveshare 4.3" retrato, JC8012P4A1), sem avisos, e numa tela real com uma K1.
+Na ferramenta de pré-visualização do Tessera (`tools/preview.py`) na CYD, Guition 4", Waveshare 4.3" retrato e
+JC8012P4A1, sem avisos, e numa tela real com uma K1.

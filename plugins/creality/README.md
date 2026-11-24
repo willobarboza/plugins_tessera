@@ -54,5 +54,5 @@ Changing an entity in the inspector needs no build.
 
 ## Tested
 
-On Tessera's bench (CYD, Guition 4", Waveshare 4.3" portrait, JC8012P4A1), with no warnings, and on a real screen with a
-K1.
+In Tessera's preview tool (`tools/preview.py`) on the CYD, Guition 4", Waveshare 4.3" portrait and JC8012P4A1, with no
+warnings, and on a real screen with a K1.
